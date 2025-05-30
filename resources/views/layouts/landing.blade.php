@@ -13,6 +13,7 @@
     <!-- General CSS Files -->
     <link rel="stylesheet" href="{{ asset('modules/bootstrap/css/bootstrap.min.css') }}">
     <link rel="stylesheet" href="{{ asset('modules/fontawesome/css/all.min.css') }}">
+    <link rel="stylesheet" href="{{ asset('modules/aos/dist/aos.css') }}">
 
     <!-- Template CSS -->
     <link rel="stylesheet" href="{{ asset('css/style.css') }}">
@@ -55,6 +56,7 @@
 
     <!-- JS Libraies -->
     <script src="{{ asset('modules/sweetalert/sweetalert.min.js') }}"></script>
+    <script src="{{ asset('modules/aos/dist/aos.js') }}"></script>
 
     <!-- Template JS File -->
     <script src="{{ asset('js/scripts.js') }}"></script>
@@ -63,75 +65,8 @@
     @stack('scripts')
 
     <script>
-        // Handle messages
-        document.addEventListener('DOMContentLoaded', function() {
-            let title = '';
-            let htmlContent = '';
-            let icon = '';
-            let url = '';
-
-            @if (session('success-with-url'))
-                title = 'Berhasil!';
-                htmlContent = `{!! session('success-with-url') !!}`;
-                icon = 'success';
-                url = `{!! session('url') !!}`;
-            @elseif (session('success'))
-                title = 'Berhasil!';
-                htmlContent = `{!! session('success') !!}`;
-                icon = 'success';
-            @elseif (session('error'))
-                title = 'Gagal!';
-                htmlContent = `{!! session('error') !!}`;
-                icon = 'error';
-            @elseif (session('warning'))
-                title = 'Peringatan!';
-                htmlContent = `{!! session('warning') !!}`;
-                icon = 'warning';
-            @endif
-
-            if (title && htmlContent && icon) {
-                const content = document.createElement('div');
-                content.innerHTML = htmlContent;
-
-                if (url) {
-                    // If there is a URL, display 'Close' and 'Send Message' buttons
-                    swal({
-                        title: title,
-                        content: content,
-                        icon: icon,
-                        buttons: {
-                            cancel: {
-                                text: 'Tutup',
-                                value: null,
-                                visible: true,
-                                className: 'cancel-button',
-                                closeModal: true
-                            },
-                            confirm: {
-                                text: 'Kirim Pesan',
-                                value: true,
-                                visible: true,
-                                className: 'confirm-button',
-                                closeModal: true
-                            }
-                        }
-                    }).then((value) => {
-                        if (value) {
-                            window.open(url, '_blank'); // Open the URL in a new tab
-                        }
-                    });
-                } else {
-                    // If there is no URL, display 'OK' button with a 5-second timer
-                    swal({
-                        title: title,
-                        content: content,
-                        icon: icon,
-                        button: "OK",
-                        timer: 5000
-                    });
-                }
-            }
-        });
+        // AOS library 
+        AOS.init();
     </script>
 </body>
 

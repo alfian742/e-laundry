@@ -32,7 +32,7 @@
                     @if (request('order_code'))
                         @if ($order)
                             <div class="col-12">
-                                <div class="card p-0">
+                                <div class="card p-0" data-aos="fade-up" data-aos-delay="200" data-aos-duration="1200">
                                     <div class="card-body p-4">
                                         <div class=" d-flex justify-content-between align-items-center mb-4"
                                             style="gap: .5rem">
@@ -268,7 +268,8 @@
                             </div>
                         @else
                             <div class="col-12 py-5">
-                                <div class="d-flex justify-content-center align-items-center">
+                                <div class="d-flex justify-content-center align-items-center" data-aos="fade-up"
+                                    data-aos-delay="200" data-aos-duration="1200">
                                     <div class="text-center">
                                         <h1><i class="fa-solid fa-folder-open"></i></h1>
 
@@ -282,7 +283,8 @@
                         @endif
                     @else
                         <div class="col-12">
-                            <div class="d-flex justify-content-center">
+                            <div class="d-flex justify-content-center" data-aos="fade-up" data-aos-delay="200"
+                                data-aos-duration="1200">
                                 <div class="alert alert-light" role="alert" style="max-width: 460px; width: 100%;">
                                     <h6>Panduan</h6>
                                     <p class="text-lead mb-0">

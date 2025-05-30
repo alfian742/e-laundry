@@ -16,14 +16,21 @@
                         <div class="hero text-white hero-bg-image custom-hero-bg-image px-2 px-lg-0"
                             style="background-image: url('{{ asset('img/static/hero-image.jpg') }}');">
                             <div class="hero-inner container custom-container-hero text-center text-lg-left py-4">
-                                <h1 class="hero-title">{{ $site->site_name }}</h1>
-                                <h5><span class="d-none d-lg-inline">—</span> {{ $site->tagline }}</h5>
+                                <h1 class="hero-title" data-aos="fade-down" data-aos-delay="200" data-aos-duration="1200">
+                                    {{ $site->site_name }}
+                                </h1>
+                                <h5 data-aos="fade-right" data-aos-delay="400" data-aos-duration="1200"><span
+                                        class="d-none d-lg-inline">—</span>
+                                    {{ $site->tagline }}
+                                </h5>
                                 <div class="d-flex flex-row justify-content-center justify-content-lg-start"
                                     style="gap: .5rem; margin-top: 2.5rem;">
-                                    <a href="#about" class="btn bg-white text-dark btn-lg scroll-link">
+                                    <a href="#about" class="btn bg-white text-dark btn-lg scroll-link" data-aos="zoom-in"
+                                        data-aos-delay="600" data-aos-duration="1200">
                                         <span class="d-none d-lg-inline">Lihat</span> Selengkapnya
                                     </a>
-                                    <a href="{{ url('/login') }}" class="btn btn-outline-white btn-lg">
+                                    <a href="{{ url('/login') }}" class="btn btn-outline-white btn-lg" data-aos="zoom-in"
+                                        data-aos-delay="600" data-aos-duration="1200">
                                         Masuk
                                     </a>
                                 </div>
@@ -33,10 +40,11 @@
                     <div class="col-12 m-0 px-4 px-lg-0 bg-white about" id="about">
                         <div class="container custom-container-section py-4">
                             <div class="row align-items-center">
-                                <div class="col-lg-3">
+                                <div class="col-lg-3 d-none d-lg-inline">
                                     <a target="_blank" rel="noopener noreferrer"
                                         href="https://www.freepik.com/free-photo/woman-using-washing-machine-doing-laundry-young-woman-ready-wash-clothes-interior-washing-process-concept_11183824.htm#fromView=search&page=3&position=14&uuid=f5ba83df-be45-4ef6-a433-41ae0a730e97&query=Laundry">
-                                        <div class="ratio ratio-1x1 mx-auto mx-lg-0 mr-lg-auto" style="max-width: 240px;">
+                                        <div class="ratio ratio-1x1 mx-auto mx-lg-0 mr-lg-auto" style="max-width: 240px;"
+                                            data-aos="zoom-out" data-aos-delay="800" data-aos-duration="1200">
                                             <img src="{{ asset('img/static/about-image.jpg') }}" alt="About Image"
                                                 loading="eager" class="rounded d-block w-100 h-100"
                                                 style="object-fit: cover;" loading="lazy">
@@ -44,10 +52,12 @@
                                     </a>
                                 </div>
                                 <div class="col-lg-9">
-                                    <h2 class="section-title mt-lg-0">Tentang Kami</h2>
-                                    <article>
-                                        {!! $site->about_us !!}
-                                    </article>
+                                    <div data-aos="fade-left" data-aos-delay="800" data-aos-duration="1200">
+                                        <h2 class="section-title mt-lg-0">Tentang Kami</h2>
+                                        <article>
+                                            {!! $site->about_us !!}
+                                        </article>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -55,12 +65,12 @@
                 </div>
 
                 <div class="container custom-container-section pt-5">
-                    <div class="row justify-content-center align-iitems-center m-0 p-0 rounded shadow-sm"
-                        style="overflow: hidden;">
+                    <div class="row justify-content-center align-iitems-center m-0 p-0 rounded" style="overflow: hidden;">
                         <div class="col-lg-9 m-0 p-0">
                             <div class="row m-0 p-0">
                                 <div class="col-lg-6 col-md-6 col-sm-12 m-0 p-0">
-                                    <div class="card card-statistic-1 m-0 shadow-none rounded-0">
+                                    <div class="card card-statistic-1 m-0 shadow-none rounded-0" data-aos="fade-up"
+                                        data-aos-delay="200" data-aos-duration="1600">
                                         <div class="card-icon bg-primary">
                                             <i class="fas fa-shirt"></i>
                                         </div>
@@ -70,7 +80,8 @@
                                     </div>
                                 </div>
                                 <div class="col-lg-6 col-md-6 col-sm-12 m-0 p-0">
-                                    <div class="card card-statistic-1 m-0 shadow-none rounded-0">
+                                    <div class="card card-statistic-1 m-0 shadow-none rounded-0" data-aos="fade-up"
+                                        data-aos-delay="400" data-aos-duration="1600">
                                         <div class="card-icon bg-primary">
                                             <i class="fas fa-bolt"></i>
                                         </div>
@@ -80,7 +91,8 @@
                                     </div>
                                 </div>
                                 <div class="col-lg-6 col-md-6 col-sm-12 m-0 p-0">
-                                    <div class="card card-statistic-1 m-0 shadow-none rounded-0">
+                                    <div class="card card-statistic-1 m-0 shadow-none rounded-0" data-aos="fade-up"
+                                        data-aos-delay="600" data-aos-duration="1600">
                                         <div class="card-icon bg-primary">
                                             <i class="fas fa-truck"></i>
                                         </div>
@@ -90,7 +102,8 @@
                                     </div>
                                 </div>
                                 <div class="col-lg-6 col-md-6 col-sm-12 m-0 p-0">
-                                    <div class="card card-statistic-1 m-0 shadow-none rounded-0">
+                                    <div class="card card-statistic-1 m-0 shadow-none rounded-0" data-aos="fade-up"
+                                        data-aos-delay="800" data-aos-duration="1600">
                                         <div class="card-icon bg-primary">
                                             <i class="fas fa-money-bill-transfer"></i>
                                         </div>
@@ -105,7 +118,8 @@
                             <a target="_blank" rel="noopener noreferrer"
                                 href="https://www.freepik.com/free-photo/mother-with-daughter-doing-laundry-self-serviece-laundrette_6636879.htm#fromView=image_search_similar&page=4&position=11&uuid=ac763868-0075-4635-9828-b18c0fa741e7">
                                 <img src="{{ asset('img/static/list-service-image.jpg') }}" alt="About Image"
-                                    loading="eager" class="d-block w-100 h-100" style="object-fit: cover;" loading="lazy">
+                                    loading="eager" class="d-block w-100 h-100" style="object-fit: cover;"
+                                    loading="lazy" data-aos="fade-left" data-aos-delay="1000" data-aos-duration="1600">
                             </a>
                         </div>
                     </div>
@@ -116,9 +130,12 @@
                         <div class="col-12">
                             <div class="d-flex flex-wrap justify-content-between align-items-center mb-4"
                                 style="gap: .5rem">
-                                <h4 class="text-center mb-0">Layanan Kami</h4>
+                                <h4 class="text-center mb-0" data-aos="fade-right" data-aos-delay="200"
+                                    data-aos-duration="1200">Layanan Kami
+                                </h4>
                                 @if (!$services->isEmpty())
-                                    <a href="{{ url('/landing/service') }}" class="btn btn-primary btn-icon icon-right">
+                                    <a href="{{ url('/landing/service') }}" class="btn btn-primary btn-icon icon-right"
+                                        data-aos="fade-left" data-aos-delay="200" data-aos-duration="1200">
                                         Lihat Lainnya <i class="fas fa-arrow-right"></i>
                                     </a>
                                 @endif
@@ -126,7 +143,8 @@
                         </div>
                         @forelse ($services as $service)
                             <div class="col-sm-6 col-md-4">
-                                <div class="card">
+                                <div class="card" data-aos="fade-up"
+                                    data-aos-delay="{{ ($loop->iteration - 1) * 100 }}" data-aos-duration="1200">
                                     <div class="card-body p-0">
                                         <div class="custom-card-img-wrapper">
                                             <div class="custom-card-img-label m-2">
@@ -172,7 +190,8 @@
                         @empty
                             <div class="col-12 py-4">
                                 <div class="d-flex justify-content-center align-items-center">
-                                    <div class="text-center">
+                                    <div class="text-center" data-aos="fade-up" data-aos-delay="200"
+                                        data-aos-duration="1200">
                                         <h1><i class="fa-solid fa-folder-open"></i></h1>
 
                                         <p class="text-lead">Layanan tidak ditemukan.</p>
@@ -185,7 +204,8 @@
 
                 <div class="bg-white py-5">
                     <div class="container custom-container-section">
-                        <h4 class="text-center mb-4">Ulasan Pelanggan</h4>
+                        <h4 class="text-center mb-4" data-aos="fade-down" data-aos-delay="200" data-aos-duration="1200">
+                            Ulasan Pelanggan</h4>
 
                         <div id="loading-customer-review" class="text-center py-4">
                             <img src="{{ asset('img/static/spinner-primary.svg') }}" alt="loading"
@@ -193,51 +213,54 @@
                             <span>Memuat ulasan...</span>
                         </div>
 
-                        <div class="owl-carousel owl-theme d-none" id="customer-review-carousel">
-                            @forelse ($customerReviews as $review)
-                                @php
-                                    $customer = $review?->reviewingCustomer;
-                                    $rating = $review->rating;
-                                @endphp
-                                <div class="p-4 bg-white rounded border shadow-sm mx-3">
-                                    <div class="d-flex align-items-center mb-3">
-                                        <img src="" class="rounded-circle mr-3 avatar-initials"
-                                            data-name="{{ $customer->fullname ?? 'N/A' }}"
-                                            alt="{{ $customer->fullname ?? 'N/A' }}" style="width: 64px; height: 64px;">
-                                        <div>
-                                            <h6 class="mb-1 font-weight-bold">{{ $customer->fullname ?? 'N/A' }}</h6>
-                                            <small class="text-muted" data-toggle="tooltip"
-                                                title="{{ carbon_format_date($review->review_at, 'datetime') . " {$zone}" }}">
-                                                {{ carbon_format_date($review->review_at, 'human') }}
-                                            </small>
-                                            <div class="mt-1">
-                                                @for ($i = 1; $i <= 5; $i++)
-                                                    @if ($i <= $rating)
-                                                        <i class="fas fa-star text-warning"></i>
-                                                    @else
-                                                        <i class="far fa-star text-muted"></i>
-                                                    @endif
-                                                @endfor
+                        <div data-aos="fade-up" data-aos-delay="200" data-aos-duration="1200">
+                            <div class="owl-carousel owl-theme d-none" id="customer-review-carousel">
+                                @forelse ($customerReviews as $review)
+                                    @php
+                                        $customer = $review?->reviewingCustomer;
+                                        $rating = $review->rating;
+                                    @endphp
+                                    <div class="p-4 bg-white rounded border shadow-sm mx-3">
+                                        <div class="d-flex align-items-center mb-3">
+                                            <img src="" class="rounded-circle mr-3 avatar-initials"
+                                                data-name="{{ $customer->fullname ?? 'N/A' }}"
+                                                alt="{{ $customer->fullname ?? 'N/A' }}"
+                                                style="width: 64px; height: 64px;">
+                                            <div>
+                                                <h6 class="mb-1 font-weight-bold">{{ $customer->fullname ?? 'N/A' }}</h6>
+                                                <small class="text-muted" data-toggle="tooltip"
+                                                    title="{{ carbon_format_date($review->review_at, 'datetime') . " {$zone}" }}">
+                                                    {{ carbon_format_date($review->review_at, 'human') }}
+                                                </small>
+                                                <div class="mt-1">
+                                                    @for ($i = 1; $i <= 5; $i++)
+                                                        @if ($i <= $rating)
+                                                            <i class="fas fa-star text-warning"></i>
+                                                        @else
+                                                            <i class="far fa-star text-muted"></i>
+                                                        @endif
+                                                    @endfor
+                                                </div>
                                             </div>
                                         </div>
+                                        <article class="text-muted" style="font-size: 0.95rem;">
+                                            {!! $review->review ?? '-' !!}
+                                        </article>
                                     </div>
-                                    <article class="text-muted" style="font-size: 0.95rem;">
-                                        {!! $review->review ?? '-' !!}
-                                    </article>
-                                </div>
-                            @empty
-                                <div class="text-center p-4">
-                                    <h1><i class="fa-solid fa-comment-dots"></i></h1>
+                                @empty
+                                    <div class="text-center p-4">
+                                        <h1><i class="fa-solid fa-comment-dots"></i></h1>
 
-                                    <p class="text-lead">Belum ada ulasan.</p>
-                                </div>
-                            @endforelse
+                                        <p class="text-lead">Belum ada ulasan.</p>
+                                    </div>
+                                @endforelse
+                            </div>
                         </div>
                     </div>
                 </div>
 
                 <div class="container custom-container-section pt-5 mt-3">
-                    <div class="card card-primary">
+                    <div class="card card-primary" data-aos="zoom-out" data-aos-delay="200" data-aos-duration="1400">
                         <div class="row m-0">
                             <div class="col-12 col-md-12 col-lg-5 p-0">
                                 <div class="card-header text-center">

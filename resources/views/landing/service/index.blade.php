@@ -31,7 +31,8 @@
 
                     @forelse ($services as $service)
                         <div class="col-sm-6 col-md-4">
-                            <div class="card">
+                            <div class="card" data-aos="fade-up" data-aos-delay="{{ ($loop->iteration - 1) * 100 }}"
+                                data-aos-duration="1200">
                                 <div class="card-body p-0">
                                     <div class="custom-card-img-wrapper">
                                         <div class="custom-card-img-label m-2">
@@ -76,7 +77,8 @@
                         </div>
                     @empty
                         <div class="col-12 py-5">
-                            <div class="d-flex justify-content-center align-items-center">
+                            <div class="d-flex justify-content-center align-items-center" data-aos="fade-up"
+                                data-aos-delay="200" data-aos-duration="1200">
                                 <div class="text-center">
                                     <h1><i class="fa-solid fa-folder-open"></i></h1>
 

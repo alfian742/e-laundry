@@ -11,7 +11,7 @@
             <div class="section-body">
                 <div class="row">
                     <div class="col-12">
-                        <div class="card">
+                        <div class="card" data-aos="fade-up" data-aos-delay="200" data-aos-duration="1200">
                             <div class="card-body">
                                 <div class=" d-flex flex-wrap justify-content-center justify-content-sm-between align-items-center mb-4"
                                     style="gap: .5rem">
