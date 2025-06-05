@@ -1,4 +1,4 @@
-# Posyandu Project
+# E-Laundry Project
 
 Selamat datang di **E-Laundry Project**! 🎉 Proyek ini dibangun menggunakan Laravel 12 dan template dashboard **Bootstrap Stisla**.
 
