@@ -4,27 +4,28 @@ Selamat datang di **Posyandu Project**! 🎉 Proyek ini dibangun menggunakan Lar
 
 ## 🖥️ Screenshot
 
-1. Login Page
+1. Landing Page
 ![Login Page](public/img/screenshot/Screenshot_001.png)
 
-2. Dashboard
-![Dashboard](public/img/screenshot/Screenshot_002.png)
+2. Dashboard Customer
+![Dashboard Customer](public/img/screenshot/Screenshot_002.png)
+
+3. Dashboard Staff
+![Dashboard Staff](public/img/screenshot/Screenshot_003.png)
 
 ## ✨ Fitur
 
-1. **Login Multi-User**: Admin, Bidan, Tenaga Medis Puskesmas, Orang Tua (Ibu), Kepala Desa/Lurah, dan Kepala Dusun/Lingkungan.
-2. **Kelola Data Orang Tua**.
-3. **Kelola Data Anak**.
-4. **Kelola Data Lansia**.
-5. **Kelola Data Petugas**: Akses hanya untuk Admin.
-6. **Kelola Jadwal**.
-7. **Kelola Imunisasi**.
-8. **Kelola Penimbangan**.
-9. **Kelola Pemeriksaan Ibu Hamil**.
-10. **Kelola Pemeriksaan Lansia**.
-11. **Kelola Persedian Vaksin**.
-12. **Kelola Persediaan Obat**.
-13. **Kelola Identitas Situs**: Akses hanya untuk Admin.
+1. **Login Multi-User**: Pelanggan, Karyawan, Admin, dan Pemilik Jasa Laundry.
+2. **Kelola Pesanan**: Akses semua role.
+3. **Lihat Jadwal Antar/Jemput**: Akses semua role.
+4. **Kelola Ulasan**.**Kelola Data Pengguna (Data Pelanggan, Data Staf, dan Data Akun)**: Akses hanya untuk pelanggan, admin, dan pemilik.
+5. **Kelola Data Pengguna (Data Pelanggan, Data Staf, dan Data Akun)**: Akses hanya untuk admin dan pemilik.
+6. **Lihat Pendapatan dan Kelola Pengeluaran**: Akses hanya untuk admin dan pemilik.
+7. **Kelola Data Layanan**: Akses hanya untuk admin dan pemilik.
+8. **Kelola Promo**: Akses hanya untuk admin dan pemilik.
+9. **Kelola Metode Pembayaran**: Akses hanya untuk admin dan pemilik.
+10. **Kelola Metode Antar/Jemput**: Akses hanya untuk admin dan pemilik.
+11. **Kelola Identitas Situs**: Akses hanya untuk admin dan pemilik.
 
 ## 🚀 Teknologi yang Digunakan
 
@@ -46,13 +47,13 @@ Ikuti langkah-langkah berikut untuk menjalankan proyek Laravel **Posyandu** di s
 ### 1. Clone Repository
 Clone repositori dari GitHub ke direktori lokal:
 ```bash
-git clone https://github.com/alfian742/posyandu.git
+git clone https://github.com/alfian742/e-laundry.git
 ```
 
 ### 2. Masuk ke Direktori Proyek
 Pindah ke folder proyek:
 ```bash
-cd posyandu
+cd e-laundry
 ```
 
 ### 3. Install Dependensi
@@ -77,7 +78,7 @@ Laravel menggunakan file `.env` untuk konfigurasi lingkungan.
 
     Contoh:
     ```
-    DB_DATABASE=posyandu
+    DB_DATABASE=e_laundry
     DB_USERNAME=root
     DB_PASSWORD=
     APP_TIMEZONE=Asia/Makassar
@@ -114,20 +115,24 @@ http://localhost:8000
 
 ## 📖 Panduan Penggunaan
 
-1. **Login**:
-   - Gunakan kredensial berikut untuk login ke aplikasi:
-   - Admin
-     - **Username**: `admin`
-     - **Password**: `123`
+1. **Login Admin**:
+   - **Email**: `admin@gmail.com`
+   - **Password**: `123`
 
-2. **Login Selain Admin**:
-   - Anda dapat login dengan menggunakan **Username**: `nik yang terdaftar pada aplikasi` dan **Password**: `123` untuk login dengan role Bidan, Petugas, dan Orang Tua (Ibu).
+2. **Login Karyawan**:
+   - **Email**: `employee@gmail.com`
+   - **Password**: `123`
+
+3. **Login Pemilik**:
+   - **Email**: `owner@gmail.com`
+   - **Password**: `123`
+
+4. **Login Pelanggan**:
+   - **Email**: `user@gmail.com`
+   - **Password**: `123`
 
 3. **Kelola Semua Menu**:
    - Menu dapat dikelola oleh semua user dengan batasan akses tertentu.
-
-4. **Demo**:
-   - Demo aplikasi dapat diakses melalui link berikut: [Demo Aplikasi Posyandu](http://my-public-project.infinityfreeapp.com/posyandu/public/)
 
 ---
 
