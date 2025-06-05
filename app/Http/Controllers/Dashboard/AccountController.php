@@ -154,7 +154,7 @@ class AccountController extends Controller
         }
 
         try {
-            $password = 'skylaundry'; // Password default
+            $password = 'password'; // Password default
 
             $account = User::create([
                 'email' => $data['email'],
@@ -269,7 +269,7 @@ class AccountController extends Controller
 
         try {
             $email = $account->email ?? null;
-            $password = 'skylaundry'; // Default password
+            $password = 'password'; // Default password
 
             if (!is_null($account->staff_id) && $account->relatedStaff) {
                 $fullname = $account->relatedStaff->fullname ?? 'N/A';

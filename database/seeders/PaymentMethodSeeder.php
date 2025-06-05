@@ -33,12 +33,6 @@ class PaymentMethodSeeder extends Seeder
                 'img' => 'default.jpg'
             ],
             [
-                'method_name' => 'Dana (081234567890)',
-                'payment_type' => 'online',
-                'description' => 'Transfer pembayaran ke nomor Dana: 081234567890 sesuai jumlah yang tertera. Unggah bukti pembayaran diperlukan.',
-                'img' => 'default.jpg'
-            ],
-            [
                 'method_name' => 'BRI (123456789012345)',
                 'payment_type' => 'bank_transfer',
                 'description' => 'Transfer pembayaran ke rekening BRI: 123456789012345 sesuai jumlah yang tertera. Unggah bukti pembayaran diperlukan.',

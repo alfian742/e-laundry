@@ -14,6 +14,15 @@ class ExpenseSeeder extends Seeder
      */
     public function run(): void
     {
+        function getRandomPaidAtDate()
+        {
+            return Carbon::create(
+                now()->year,
+                now()->month,
+                rand(1, now()->daysInMonth)
+            )->format('Y-m-d');
+        }
+
         $data = [
             [
                 'expense_category' => 'Tagihan Listrik',
@@ -21,7 +30,7 @@ class ExpenseSeeder extends Seeder
                 'paid_amount'      => 350000,
                 'status'           => 'paid',
                 'notes'            => 'Pembayaran listrik untuk keperluan operasional laundry.',
-                'paid_at'          => Carbon::now()->subDays(5)->format('Y-m-d'),
+                'paid_at'          => getRandomPaidAtDate(),
             ],
             [
                 'expense_category' => 'Tagihan Air',
@@ -29,7 +38,7 @@ class ExpenseSeeder extends Seeder
                 'paid_amount'      => 120000,
                 'status'           => 'paid',
                 'notes'            => 'Pembayaran tagihan air untuk proses pencucian pakaian.',
-                'paid_at'          => Carbon::now()->subDays(3)->format('Y-m-d'),
+                'paid_at'          => getRandomPaidAtDate(),
             ],
             [
                 'expense_category' => 'Kebutuhan Laundry',
@@ -37,7 +46,7 @@ class ExpenseSeeder extends Seeder
                 'paid_amount'      => 180000,
                 'status'           => 'partial',
                 'notes'            => 'Pembelian detergen, pewangi, dan plastik pembungkus pakaian.',
-                'paid_at'          => Carbon::now()->subDays(2)->format('Y-m-d'),
+                'paid_at'          => getRandomPaidAtDate(),
             ],
             [
                 'expense_category' => 'Gaji Karyawan',
@@ -53,7 +62,7 @@ class ExpenseSeeder extends Seeder
                 'paid_amount'      => 750000,
                 'status'           => 'paid',
                 'notes'            => 'Biaya servis dan perawatan rutin mesin cuci & pengering.',
-                'paid_at'          => Carbon::now()->subDays(7)->format('Y-m-d'),
+                'paid_at'          => getRandomPaidAtDate(),
             ],
         ];
 
