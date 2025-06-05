@@ -1,6 +1,6 @@
 # Posyandu Project
 
-Selamat datang di **Posyandu Project**! 🎉 Proyek ini dibangun menggunakan Laravel 12 dan template dashboard **Bootstrap Stisla**.
+Selamat datang di **E-Laundry Project**! 🎉 Proyek ini dibangun menggunakan Laravel 12 dan template dashboard **Bootstrap Stisla**.
 
 ## 🖥️ Screenshot
 
@@ -52,7 +52,7 @@ Pastikan Anda telah menginstal:
 - Composer
 - MySQL / MariaDB
 
-Ikuti langkah-langkah berikut untuk menjalankan proyek Laravel **Posyandu** di servel lokal.
+Ikuti langkah-langkah berikut untuk menjalankan proyek Laravel **E-Laundry** di servel lokal.
 
 ### 1. Clone Repository
 Clone repositori dari GitHub ke direktori lokal:
