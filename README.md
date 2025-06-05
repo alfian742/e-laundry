@@ -15,17 +15,27 @@ Selamat datang di **Posyandu Project**! 🎉 Proyek ini dibangun menggunakan Lar
 
 ## ✨ Fitur
 
-1. **Login Multi-User**: Pelanggan, Karyawan, Admin, dan Pemilik Jasa Laundry.
-2. **Kelola Pesanan**: Akses semua role.
-3. **Lihat Jadwal Antar/Jemput**: Akses semua role.
-4. **Kelola Ulasan**.**Kelola Data Pengguna (Data Pelanggan, Data Staf, dan Data Akun)**: Akses hanya untuk pelanggan, admin, dan pemilik.
-5. **Kelola Data Pengguna (Data Pelanggan, Data Staf, dan Data Akun)**: Akses hanya untuk admin dan pemilik.
-6. **Lihat Pendapatan dan Kelola Pengeluaran**: Akses hanya untuk admin dan pemilik.
-7. **Kelola Data Layanan**: Akses hanya untuk admin dan pemilik.
-8. **Kelola Promo**: Akses hanya untuk admin dan pemilik.
-9. **Kelola Metode Pembayaran**: Akses hanya untuk admin dan pemilik.
-10. **Kelola Metode Antar/Jemput**: Akses hanya untuk admin dan pemilik.
-11. **Kelola Identitas Situs**: Akses hanya untuk admin dan pemilik.
+- 🔐 **Login Multi-User**: Pelanggan, Karyawan, Admin, dan Pemilik Jasa Laundry.
+
+- 📦 **Kelola Pesanan**: Akses semua role.
+
+- 🚚 **Lihat Jadwal Antar/Jemput**: Akses semua role.
+
+- 💬 **Kelola Ulasan & Kelola Data Pengguna (Data Pelanggan, Data Staf, dan Data Akun)**: Akses hanya untuk pelanggan, admin, dan pemilik.
+
+- 👥 **Kelola Data Pengguna (Data Pelanggan, Data Staf, dan Data Akun)**: Akses hanya untuk admin dan pemilik.
+
+- 📊 **Lihat Pendapatan dan Kelola Pengeluaran**: Akses hanya untuk admin dan pemilik.
+
+- 🧺 **Kelola Data Layanan**: Akses hanya untuk admin dan pemilik.
+
+- 🎁 **Kelola Promo**: Akses hanya untuk admin dan pemilik.
+
+- 💳 **Kelola Metode Pembayaran**: Akses hanya untuk admin dan pemilik.
+
+- 🚐 **Kelola Metode Antar/Jemput**: Akses hanya untuk admin dan pemilik.
+
+- 🌐 **Kelola Identitas Situs**: Akses hanya untuk admin dan pemilik.
 
 ## 🚀 Teknologi yang Digunakan
 
