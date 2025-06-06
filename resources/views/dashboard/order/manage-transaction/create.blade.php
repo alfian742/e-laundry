@@ -36,6 +36,24 @@
                 </div>
             </div>
             <div class="row justify-content-center align-items-center">
+                @php
+                    $finalServicePrice = 0;
+
+                    $totalAmountPaid = 0;
+
+                    foreach ($details as $detail) {
+                        $finalServicePrice += $detail->final_service_price;
+                    }
+
+                    foreach ($orderTransactions as $transaction) {
+                        $totalAmountPaid += $transaction->amount_paid;
+                    }
+
+                    $finalAmountPaid = $finalServicePrice + $order->delivery_cost;
+
+                    $remainingPayment = $finalAmountPaid - $totalAmountPaid;
+                @endphp
+
                 @if ($isCustomer)
                     <div class="col-md-6">
                         <div class="card">
@@ -119,19 +137,6 @@
                                         </div>
                                     </div>
 
-                                    @php
-                                        $finalServicePrice = 0;
-                                        $totalAmountPaid = 0;
-
-                                        foreach ($details as $detail) {
-                                            $finalServicePrice += $detail->final_service_price;
-                                        }
-
-                                        foreach ($transactions as $transaction) {
-                                            $totalAmountPaid += $transaction->amount_paid;
-                                        }
-                                    @endphp
-
                                     <hr class="my-4">
 
                                     <div class="table-responsive mb-4">
@@ -156,8 +161,6 @@
                                                 <th>&nbsp;</th>
                                                 <td>=</td>
                                                 <td>
-                                                    @php $finalAmountPaid = $finalServicePrice + $order->delivery_cost @endphp
-
                                                     {{ formatRupiah($finalAmountPaid) ?? '-' }}
                                                 </td>
                                             </tr>
@@ -171,11 +174,11 @@
                                                     </td>
                                                 </tr>
                                                 <tr>
-                                                    @php
-                                                        $remainingPayment = $finalAmountPaid - $totalAmountPaid;
-                                                    @endphp
-
-                                                    @if ($remainingPayment < 0)
+                                                    @if (abs($remainingPayment) <= 1)
+                                                        <th>Sisa Pembayaran</th>
+                                                        <td>=</td>
+                                                        <td>{{ formatRupiah(0) }}</td>
+                                                    @elseif ($remainingPayment < 0)
                                                         <th>Uang Kembali</th>
                                                         <td>=</td>
                                                         <td>{{ formatRupiah(abs($remainingPayment)) }}</td>
@@ -239,7 +242,7 @@
                                                     value="{{ formatRupiahPlain(old('amount_paid')) }}"
                                                     placeholder="1000000"
                                                     style="border-start-end-radius: .25rem; border-end-end-radius: .25rem;">
-                                                <div class="invalid-feedback" id="price-per-kg-error">
+                                                <div class="invalid-feedback" id="amount-paid-error">
                                                     @error('amount_paid')
                                                         {{ $message }}
                                                     @enderror
@@ -286,24 +289,6 @@
 
                                         <div class="col-12">
                                             <hr class="my-4">
-
-                                            @php
-                                                $finalServicePrice = 0;
-
-                                                $totalAmountPaid = 0;
-
-                                                foreach ($details as $detail) {
-                                                    $finalServicePrice += $detail->final_service_price;
-                                                }
-
-                                                foreach ($transactions as $transaction) {
-                                                    $totalAmountPaid += $transaction->amount_paid;
-                                                }
-
-                                                $finalAmountPaid = $finalServicePrice + $order->delivery_cost;
-
-                                                $remainingPayment = $finalAmountPaid - $totalAmountPaid;
-                                            @endphp
 
                                             <div class="row justify-content-end mb-4">
                                                 <div class="col-md-6">
@@ -543,9 +528,33 @@
     @else
         <script>
             document.addEventListener('DOMContentLoaded', function() {
+                // ======== VALIDASI JUMLAH PEMBAYARAN ========
+                function validateCostInput(inputId, errorId, fieldName) {
+                    var inputElement = document.getElementById(inputId);
+                    var errorElement = document.getElementById(errorId);
+
+                    inputElement.addEventListener('input', function() {
+                        var value = this.value.trim();
+                        var isNumeric = /^[0-9]+$/.test(value);
+
+                        if (value !== '' && (isNaN(value) || !isNumeric)) {
+                            inputElement.classList.add('is-invalid');
+                            errorElement.textContent = fieldName + " tidak valid. Contoh: 10000.";
+                        } else {
+                            inputElement.classList.remove('is-invalid');
+                            errorElement.textContent = "";
+                        }
+                    });
+                }
+
+                validateCostInput('amount_paid', 'amount-paid-error', 'Jumlah pembayaran');
+            });
+        </script>
+
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
                 const totalAmountPaid = {{ formatRupiahPlain($totalAmountPaid) }};
-                const finalAmountToPay =
-                    {{ formatRupiahPlain($finalServicePrice) + formatRupiahPlain($order->delivery_cost) }};
+                const finalAmountToPay = {{ formatRupiahPlain($finalAmountPaid) }};
 
                 const amountPaidInput = document.getElementById('amount_paid');
                 const totalAmountPaidDisplay = document.getElementById('total-amount-paid');

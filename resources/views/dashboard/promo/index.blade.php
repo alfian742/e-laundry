@@ -74,6 +74,7 @@
                                             <th>Waktu Aktif</th>
                                             <th>Segmentasi</th>
                                             <th>Keterangan</th>
+                                            <th>Layanan</th>
                                             <th>Status Promo</th>
                                             @if ($isOwner || $isAdmin)
                                                 <th>Aksi</th>
@@ -140,6 +141,19 @@
                                                         {{ $promo->description ?? '-' }}
                                                     </div>
                                                 </td>
+                                                <td>
+                                                    <div class="text-wrap-overflow">
+                                                        @if ($promo->services->isNotEmpty())
+                                                            <ul>
+                                                                @foreach ($promo->services as $service)
+                                                                    <li>{{ $service->service_name }}</li>
+                                                                @endforeach
+                                                            </ul>
+                                                        @else
+                                                            -
+                                                        @endif
+                                                    </div>
+                                                </td>
                                                 <td class="text-center">
                                                     @if ($promo->active)
                                                         @if ($promo->promo_type === 'date_range' && $promo->end_date < date('Y-m-d'))
@@ -156,6 +170,12 @@
                                                 @if ($isOwner || $isAdmin)
                                                     <td class="text-center">
                                                         <div class="d-flex justify-content-center" style="gap: .5rem">
+                                                            <a href="{{ url("/promo/{$promo->id}/manage-service") }}"
+                                                                class="btn btn-warning" data-toggle="tooltip"
+                                                                title="Kelola Promo Layanan">
+                                                                <i class="fas fa-jug-detergent"></i>
+                                                            </a>
+
                                                             <a href="{{ url("/promo/{$promo->id}/edit") }}"
                                                                 class="btn btn-primary" data-toggle="tooltip"
                                                                 title="Ubah">

@@ -200,7 +200,7 @@ class ServiceController extends Controller
 
             $this->clearServiceCache();
 
-            return redirect(url("/service/{$service->id}"))->with('success', 'Data berhasil diperbarui.');
+            return redirect(url('/service'))->with('success', 'Data berhasil diperbarui.');
         } catch (\Exception $e) {
             Log::error('Error: ' . $e->getMessage());
 
@@ -239,96 +239,6 @@ class ServiceController extends Controller
             Log::error('Error: ' . $e->getMessage()); // Check 'storage/logs/laravel.log'
 
             return back()->with('error', 'Data gagal dihapus. Silakan coba kembali.');
-        }
-    }
-
-    public function managePromoService($serviceId)
-    {
-        $this->isAllowed(['owner', 'admin']);
-
-        // service
-        $service = Service::findOrFail($serviceId);
-
-        // pivot promo_service
-        $promoService = $service->promos->sortByDesc(function ($promo) {
-            return $promo->pivot->created_at;
-        });
-
-        // promos
-        // Mendapatkan tanggal hari ini
-        $today = Carbon::today();
-
-        // Mengambil data promo yang aktif dari database
-        $promos = Promo::where('active', true) // Memilih promo yang statusnya aktif
-            ->where(function ($query) use ($today) { // Menambahkan kondisi tambahan untuk tipe promo
-                $query->where('promo_type', 'daily') // Memilih promo dengan tipe 'daily' (harian)
-                    ->orWhere(function ($subQuery) use ($today) { // Atau memilih promo dengan tipe 'date_range' (rentang tanggal)
-                        $subQuery->where('promo_type', 'date_range') // Memilih promo dengan tipe 'date_range'
-                            ->where(function ($dateQuery) use ($today) { // Menambahkan kondisi untuk rentang tanggal promo
-                                $dateQuery->whereNull('end_date') // Memilih promo yang tidak memiliki tanggal akhir (end_date)
-                                    ->orWhere('end_date', '>=', $today); // Atau promo yang tanggal akhirnya lebih besar atau sama dengan hari ini
-                            });
-                    });
-            })
-            ->orderBy('promo_name', 'asc') // Mengurutkan promo berdasarkan nama promo secara ascending (A-Z)
-            ->get(); // Mengambil hasil query yang sudah difilter
-
-        return view('dashboard.service.manage-promo', compact('service', 'promoService', 'promos'));
-    }
-
-    public function storePromoService(Request $request, $serviceId)
-    {
-        $this->isAllowed(['owner', 'admin']);
-
-        $service = Service::findOrFail($serviceId);
-
-        // Validasi input
-        $data = $request->validate([
-            'promo_id' => [
-                'required',
-                'exists:promos,id',
-                Rule::unique('promo_service')->where(function ($query) use ($serviceId) {
-                    return $query->where('service_id', $serviceId);
-                }),
-            ]
-        ], [
-            'promo_id.required' => 'Silakan pilih promo yang ingin ditambahkan.',
-            'promo_id.exists' => 'Promo yang dipilih tidak ditemukan.',
-            'promo_id.unique' => 'Promo sudah ditambahkan untuk layanan ini.'
-        ]);
-
-
-        try {
-            // Tambahkan promo ke service
-            $service->promos()->syncWithoutDetaching([$data['promo_id']]);
-
-            $this->clearServiceCache();
-
-            return redirect(url("/service/{$service->id}/manage-promo"))->with('success', 'Promo berhasil ditambahkan untuk layanan ini.');
-        } catch (\Exception $e) {
-            Log::error('Error: ' . $e->getMessage());
-
-            return back()->with('error', 'Promo gagal ditambahkan untuk layanan ini. Silakan coba kembali.');
-        }
-    }
-
-    public function destroyPromoService($serviceId, $promoId)
-    {
-        $this->isAllowed(['owner', 'admin']);
-
-        $service = Service::findOrFail($serviceId);
-
-        try {
-            // Hapus relasi pivot saja
-            $service->promos()->detach($promoId);
-
-            $this->clearServiceCache();
-
-            return redirect(url("/service/{$service->id}/manage-promo"))->with('success', 'Promo berhasil dihapus dari layanan.');
-        } catch (\Exception $e) {
-            Log::error('Error: ' . $e->getMessage());
-
-            return back()->with('error', 'Promo gagal dihapus dari layanan. Silakan coba kembali.');
         }
     }
 }

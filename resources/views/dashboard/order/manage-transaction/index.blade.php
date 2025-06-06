@@ -121,23 +121,21 @@
                                             @endif
                                         </td>
                                     </tr>
-                                    @if ($isCustomer)
-                                        <tr>
-                                            <th>Status Pembayaran</th>
-                                            <td>:</td>
-                                            <td>
-                                                @if ($order->payment_status === 'unpaid')
-                                                    <span class="badge badge-danger">Belum Dibayar</span>
-                                                @elseif ($order->payment_status === 'partial')
-                                                    <span class="badge badge-warning">Belum Lunas</span>
-                                                @elseif ($order->payment_status === 'paid')
-                                                    <span class="badge badge-success">Lunas</span>
-                                                @else
-                                                    N/A
-                                                @endif
-                                            </td>
-                                        </tr>
-                                    @endif
+                                    <tr>
+                                        <th>Status Pembayaran</th>
+                                        <td>:</td>
+                                        <td>
+                                            @if ($order->payment_status === 'unpaid')
+                                                <span class="badge badge-danger">Belum Dibayar</span>
+                                            @elseif ($order->payment_status === 'partial')
+                                                <span class="badge badge-warning">Belum Lunas</span>
+                                            @elseif ($order->payment_status === 'paid')
+                                                <span class="badge badge-success">Lunas</span>
+                                            @else
+                                                N/A
+                                            @endif
+                                        </td>
+                                    </tr>
                                 </table>
                             </div>
 
@@ -145,36 +143,7 @@
 
                             <div class=" d-flex flex-wrap justify-content-between align-items-center mb-4"
                                 style="gap: .5rem">
-                                @if (!$isCustomer && !$transactions->isEmpty())
-                                    <form method="POST" action="{{ route('order.update.status.payment', $order->id) }}"
-                                        style="width: 20rem">
-                                        @csrf
-                                        @method('put')
-                                        <div class="input-group">
-                                            <div class="input-group-prepend">
-                                                <label class="input-group-text bg-light"
-                                                    for="payment_status">Pembayaran</label>
-                                            </div>
-                                            <select class="custom-select" name="payment_status" id="payment_status">
-                                                <option value="unpaid"
-                                                    {{ $order->payment_status === 'unpaid' ? 'selected' : '' }}>
-                                                    Belum Dibayar
-                                                </option>
-                                                <option value="partial"
-                                                    {{ $order->payment_status === 'partial' ? 'selected' : '' }}>
-                                                    Belum Lunas
-                                                </option>
-                                                <option value="paid"
-                                                    {{ $order->payment_status === 'paid' ? 'selected' : '' }}>
-                                                    Lunas
-                                                </option>
-                                            </select>
-                                            <div class="input-group-append">
-                                                <button type="submit" class="btn btn-primary">Simpan</button>
-                                            </div>
-                                        </div>
-                                    </form>
-                                @elseif(!$isCustomer && $transactions->isEmpty())
+                                @if (!$isCustomer && $transactions->isEmpty())
                                     @php
                                         // Pesan untuk transaksi yang masih kosong
                                         $customerData = $order?->orderingCustomer;
@@ -297,33 +266,27 @@
                                                 </td>
                                                 <td class="text-center" style="min-width: 7.5rem">
                                                     <div class="d-flex justify-content-center" style="gap: .5rem">
-                                                        @if ($order->payment_status !== 'paid')
-                                                            @if (
-                                                                ($isOwner || $isAdmin || ($isCustomer && in_array($transaction->status, ['pending', 'rejected']))) &&
-                                                                    $paymentMethod->payment_type !== 'midtrans')
-                                                                <a href="{{ url("/order/{$order->id}/transaction/{$transaction->id}/edit") }}"
-                                                                    class="btn btn-primary" data-toggle="tooltip"
-                                                                    title="Ubah Pembayaran">
-                                                                    <i class="fas fa-pencil-alt"></i>
-                                                                </a>
+                                                        @if (
+                                                            ($isOwner || $isAdmin || ($isCustomer && in_array($transaction->status, ['pending', 'rejected']))) &&
+                                                                $paymentMethod->payment_type !== 'midtrans')
+                                                            <a href="{{ url("/order/{$order->id}/transaction/{$transaction->id}/edit") }}"
+                                                                class="btn btn-primary" data-toggle="tooltip"
+                                                                title="Ubah Pembayaran">
+                                                                <i class="fas fa-pencil-alt"></i>
+                                                            </a>
 
-                                                                @if (($isOwner || $isAdmin) && !in_array($transaction->status, ['success', 'failed']))
-                                                                    <form
-                                                                        action="{{ route('transaction.order.destroy', ['order' => $order->id, 'transaction' => $transaction->id]) }}"
-                                                                        method="POST" id="delete-form-{{ $order->id }}"
-                                                                        class="d-inline">
-                                                                        @csrf
-                                                                        @method('delete')
-                                                                        <button type="submit"
-                                                                            class="btn btn-danger btn-delete"
-                                                                            data-toggle="tooltip"
-                                                                            title="Hapus Pembayaran">
-                                                                            <i class="fas fa-trash"></i>
-                                                                        </button>
-                                                                    </form>
-                                                                @endif
-                                                            @else
-                                                                -
+                                                            @if (($isOwner || $isAdmin) && !in_array($transaction->status, ['success', 'failed']))
+                                                                <form
+                                                                    action="{{ route('transaction.order.destroy', ['order' => $order->id, 'transaction' => $transaction->id]) }}"
+                                                                    method="POST" id="delete-form-{{ $order->id }}"
+                                                                    class="d-inline">
+                                                                    @csrf
+                                                                    @method('delete')
+                                                                    <button type="submit" class="btn btn-danger btn-delete"
+                                                                        data-toggle="tooltip" title="Hapus Pembayaran">
+                                                                        <i class="fas fa-trash"></i>
+                                                                    </button>
+                                                                </form>
                                                             @endif
                                                         @else
                                                             -
@@ -408,7 +371,11 @@
                                             $remainingPayment = $finalAmountPaid - $totalAmountPaid;
                                         @endphp
 
-                                        @if ($remainingPayment < 0)
+                                        @if (abs($remainingPayment) <= 1)
+                                            <th>Sisa Pembayaran</th>
+                                            <td>=</td>
+                                            <td>{{ formatRupiah(0) }}</td>
+                                        @elseif ($remainingPayment < 0)
                                             <th>Uang Kembali</th>
                                             <td>=</td>
                                             <td>{{ formatRupiah(abs($remainingPayment)) }}</td>

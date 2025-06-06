@@ -105,7 +105,8 @@
                                     </div>
 
                                     <div class="form-group col-md-6">
-                                        <label for="img" class="mt-3">Gambar (Disarankan rasio 4:3)</label>
+                                        <label for="img" class="mt-3">Gambar (Disarankan rasio 4:3) <span
+                                                class="text-danger">*</span></label>
                                         <div class="custom-file">
                                             <input type="file"
                                                 class="custom-file-input @error('img') is-invalid @enderror" id="img"

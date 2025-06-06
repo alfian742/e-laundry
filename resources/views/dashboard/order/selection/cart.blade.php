@@ -6,6 +6,7 @@
     @if (!$carts->isEmpty())
         <link rel="stylesheet" href="{{ asset('modules/select2/dist/css/select2.min.css') }}">
         <link rel="stylesheet" href="{{ asset('modules/select2/dist/css/select2-bootstrap4.min.css') }}">
+
         <style>
             .table-custom {
                 white-space: nowrap !important;
@@ -92,7 +93,7 @@
                                                                 {{ $service->service_name ?? '-' }}
                                                             </td>
                                                             <td class="text-right">
-                                                                {{ formatRupiah($service->price_per_kg) ?? '-' }}
+                                                                {{ formatRupiah($cart->price_per_kg) ?? '-' }}
                                                             </td>
                                                             <td class="text-right">
                                                                 {{ $cart->weight_kg ? intval($cart->weight_kg) : '-' }}
@@ -161,7 +162,7 @@
                                             </p>
                                             <p class="section-lead mb-0">
                                                 <span class="bullet"></span> Setelah pesanan dibuat, Anda tidak dapat
-                                                <strong>mengubah</strong>, <strong>menambah</strong>, maupun
+                                                <strong>menambah</strong> atau
                                                 <strong>menghapus</strong> layanan.
                                             </p>
                                         </div>
@@ -203,9 +204,10 @@
                                                             <span class="input-group-text bg-light">Rp</span>
                                                         </div>
                                                         <input id="delivery_cost" type="text"
-                                                            class="form-control @error('delivery_cost') is-invalid @enderror"
+                                                            class="form-control bg-light @error('delivery_cost') is-invalid @enderror"
                                                             style="border-start-end-radius: .25rem; border-end-end-radius: .25rem;"
-                                                            name="delivery_cost" value="{{ old('delivery_cost') }}"
+                                                            name="delivery_cost"
+                                                            value="{{ formatRupiahPlain(old('delivery_cost')) }}"
                                                             placeholder="0" readonly>
                                                         <div class="invalid-feedback" id="price-per-kg-error">
                                                             @error('delivery_cost')
@@ -309,6 +311,7 @@
 @push('scripts')
     @if (!$carts->isEmpty())
         <script src="{{ asset('modules/select2/dist/js/select2.full.min.js') }}"></script>
+
         <script>
             $(document).ready(function() {
                 $('#delivery_method_id').on('change', function() {
@@ -321,6 +324,7 @@
                 }
             });
         </script>
+
         <script>
             $(document).ready(function() {
                 // Gunakan delegasi untuk tombol hapus

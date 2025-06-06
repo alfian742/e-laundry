@@ -4,8 +4,10 @@ namespace App\Http\Controllers\Dashboard;
 
 use App\Http\Controllers\Controller;
 use App\Models\Promo;
+use App\Models\Service;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
 class PromoController extends Controller
@@ -239,6 +241,124 @@ class PromoController extends Controller
             Log::error('Error: ' . $e->getMessage()); // Check 'storage/logs/laravel.log'
 
             return back()->with('error', 'Data gagal dihapus. Silakan coba kembali.');
+        }
+    }
+
+    public function managePromoService($id)
+    {
+        $this->isAllowed(['owner', 'admin']);
+
+        $promo = Promo::with('services')->findOrFail($id);
+
+        $serviceCacheKey = 'service_cache_key'; // Pastikan sama dengan cache key pada ServiceController
+        $services = Cache::remember($serviceCacheKey, 300, function () {
+            return Service::orderBy('created_at', 'desc')->get();
+        })->sortBy('service_name');
+
+        return view('dashboard.promo.manage-service', compact('promo', 'services'));
+    }
+
+    public function storePromoService(Request $request, $id)
+    {
+        $this->isAllowed(['owner', 'admin']);
+
+        // Validasi input
+        $rules = [
+            'service_ids' => 'required|array',
+            'service_ids.*' => 'exists:services,id',
+        ];
+
+        $messages = [
+            'service_ids.required' => 'Pilih setidaknya satu layanan.',
+            'service_ids.*.exists' => 'Layanan yang dipilih tidak valid.',
+        ];
+
+        // Validasi data
+        $data = $request->validate($rules, $messages);
+        $serviceIds = $data['service_ids'];
+
+        try {
+            // Ambil semua service_id yang sudah terkait dengan promo ini
+            $existingServiceIds = DB::table('promo_service')
+                ->where('promo_id', $id)
+                ->pluck('service_id')
+                ->toArray();
+
+            $duplicateServices = [];
+            $addedServices = [];
+
+            foreach ($serviceIds as $serviceId) {
+                $serviceName = Service::where('id', $serviceId)->value('service_name');
+
+                if (in_array($serviceId, $existingServiceIds)) {
+                    $duplicateServices[] = $serviceName;
+                } else {
+                    DB::table('promo_service')->insert([
+                        'service_id' => $serviceId,
+                        'promo_id' => $id,
+                        'created_at' => now(),
+                        'updated_at' => now(),
+                    ]);
+
+                    $addedServices[] = $serviceName;
+                }
+            }
+
+            // Buat pesan umpan balik
+            if (!empty($duplicateServices)) {
+                $duplicateList = implode(', ', $duplicateServices);
+                $addedList = !empty($addedServices) ? implode(', ', $addedServices) : null;
+
+                $message = "<p><i class='fa-solid fa-circle-xmark text-danger mr-1'></i> {$duplicateList} sudah ada dalam promo.</p>";
+                if ($addedList) {
+                    $message .= "<p><i class='fa-solid fa-circle-check text-success mr-1'></i> {$addedList} berhasil ditambahkan ke promo.</p>";
+                }
+
+                return back()->with('warning', $message);
+            }
+
+            // Bersihkan input lama
+            session()->forget('_old_input');
+
+            return redirect("/promo/{$id}/manage-service#pivot-table")->with('success', 'Layanan berhasil ditambahkan.');
+        } catch (\Exception $e) {
+            Log::error('Error saat menambahkan layanan ke promo: ' . $e->getMessage());
+
+            return back()->with('error', 'Terjadi kesalahan saat menambahkan layanan. Silakan coba lagi.');
+        }
+    }
+
+    public function destroyPromoService(Request $request, $id)
+    {
+        $this->isAllowed(['owner', 'admin']);
+
+        $serviceIds = $request->input('service_ids', []);
+
+        if (empty($serviceIds)) {
+            return redirect()->back()->with('error', 'Tidak ada layanan yang dipilih untuk dihapus.');
+        }
+
+        try {
+            DB::beginTransaction();
+
+            foreach ($serviceIds as $serviceId) {
+                DB::table('promo_service')
+                    ->where('service_id', $serviceId)
+                    ->where('promo_id', $id)
+                    ->delete();
+            }
+
+            DB::commit();
+
+            session()->forget('_old_input');
+
+            return redirect("/promo/{$id}/manage-service#pivot-table")->with('success', 'Layanan berhasil dihapus.');
+        } catch (\Exception $e) {
+            DB::rollBack();
+
+            Log::error('Error: ' . $e->getMessage()); // Check 'storage/logs/laravel.log'
+
+            return back()->with('error', 'Layanan gagal dihapus. Silakan coba kembali.');
         }
     }
 }

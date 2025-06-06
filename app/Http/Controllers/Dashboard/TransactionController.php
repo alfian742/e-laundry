@@ -223,14 +223,14 @@ class TransactionController extends Controller
         }
 
         $details = $order->orderDetails;
-        $transactions = $order->orderTransactions;
+        $orderTransactions = $order->orderTransactions;
 
         $paymentMethodcacheKey = 'payment_method_cache_key'; // Pastikan sama dengan cache key pada PaymentMethodController
         $paymentMethods = Cache::remember($paymentMethodcacheKey, 300, function () {
             return PaymentMethod::orderBy('created_at', 'desc')->get();
         })->where('active', true)->sortBy('method_name');
 
-        return view('dashboard.order.manage-transaction.create', compact('order', 'details', 'transactions', 'paymentMethods'));
+        return view('dashboard.order.manage-transaction.create', compact('order', 'details', 'orderTransactions', 'paymentMethods'));
     }
 
     public function storeTransactionOrder(Request $request, $orderId)
@@ -352,9 +352,68 @@ class TransactionController extends Controller
                 ]);
             }
 
+            if ($staff) {
+                $newAmount = (int) formatRupiahPlain($data['amount_paid']);
+                // Pastikan total_service_price dan delivery_cost sudah angka sebelum dijumlah
+                $servicePrice = (int) formatRupiahPlain($order->total_service_price);
+                $deliveryCost = (int) formatRupiahPlain($order->delivery_cost);
+                $finalPrice = $servicePrice + $deliveryCost;
+
+                $hasPreviousTransactions = Transaction::where('order_id', $order->id)
+                    ->where('status', 'success')
+                    ->exists();
+
+                $totalPaidBefore = (int) Transaction::where('order_id', $order->id)
+                    ->where('status', 'success')
+                    ->sum('amount_paid');
+
+                $totalPaid = $totalPaidBefore;
+                if ($data['status'] === 'success') {
+                    $totalPaid += $newAmount;
+                }
+
+                if (!$hasPreviousTransactions && $data['status'] !== 'success') {
+                    $order->update(['payment_status' => 'unpaid']);
+                } else {
+                    if ($totalPaid >= $finalPrice) {
+                        $order->update(['payment_status' => 'paid']);
+                    } elseif ($totalPaid > 0 && $totalPaid < $finalPrice) {
+                        $order->update(['payment_status' => 'partial']);
+                    } else {
+                        $order->update(['payment_status' => 'unpaid']);
+                    }
+                }
+            }
+
             DB::commit();
 
             $this->clearTransactionCache();
+
+            if ($staff) {
+                $customerData = $order?->orderingCustomer;
+
+                $fullname = $customerData->fullname ?? 'N/A';
+                $phone_number = $customerData->phone_number ? formatPhoneNumber($customerData->phone_number) : 'N/A';
+
+                if ($order->payment_status === 'paid') {
+                    $messageText = "Pembayaran telah diterima sepenuhnya. Terima kasih atas pembayaran Anda.";
+                } else {
+                    // Daftar pesan berdasarkan status
+                    $statusMessages = [
+                        'pending' => "Pembayaran dengan kode '{$transaction->invoice_id}' sedang dalam proses verifikasi. Mohon menunggu konfirmasi dari Admin.",
+                        'success' => "Pembayaran dengan kode '{$transaction->invoice_id}' telah berhasil diverifikasi. Terima kasih atas pembayaran Anda.",
+                        'rejected' => "Pembayaran dengan kode '{$transaction->invoice_id}' tidak dapat diterima. Silakan periksa kembali detail pembayaran Anda dan lakukan konfirmasi ulang."
+                    ];
+
+                    // Menentukan pesan sesuai status atau default
+                    $messageText = $statusMessages[$data['status']] ?? 'Status pembayaran tidak dikenali atau telah diperbarui.';
+                }
+
+                $message = "Hai {$fullname}, {$messageText}";
+                $messageUrl = "https://wa.me/{$phone_number}?text=" . urlencode($message);
+
+                return redirect(url("/order/{$order->id}/transaction"))->with('success-with-url', 'Pembayaran berhasil ditambahkan.')->with('url', $messageUrl);
+            }
 
             return redirect(url("/order/{$order->id}/transaction"))->with('success', "Pembayaran berhasil ditambahkan.");
         } catch (\Exception $e) {
@@ -547,6 +606,47 @@ class TransactionController extends Controller
                 }
             }
 
+            if ($staff) {
+                $newAmount = (int) formatRupiahPlain($data['amount_paid']);
+                // Pastikan total_service_price dan delivery_cost sudah angka sebelum dijumlah
+                $servicePrice = (int) formatRupiahPlain($order->total_service_price);
+                $deliveryCost = (int) formatRupiahPlain($order->delivery_cost);
+                $finalPrice = $servicePrice + $deliveryCost;
+
+                $hasPreviousTransactions = Transaction::where('order_id', $order->id)
+                    ->where('status', 'success')
+                    ->exists();
+
+                $totalPaidBefore = (int) Transaction::where('order_id', $order->id)
+                    ->where('status', 'success')
+                    ->sum('amount_paid');
+
+                // Jika sedang mengedit transaksi lama, kurangi nilai transaksi lama
+                if (isset($transactionId)) {
+                    $oldTransaction = Transaction::find($transactionId);
+                    if ($oldTransaction && $oldTransaction->status === 'success') {
+                        $totalPaidBefore -= (int) formatRupiahPlain($oldTransaction->amount_paid);
+                    }
+                }
+
+                $totalPaid = $totalPaidBefore;
+                if ($data['status'] === 'success') {
+                    $totalPaid += $newAmount;
+                }
+
+                if (!$hasPreviousTransactions && $data['status'] !== 'success') {
+                    $order->update(['payment_status' => 'unpaid']);
+                } else {
+                    if ($totalPaid >= $finalPrice) {
+                        $order->update(['payment_status' => 'paid']);
+                    } elseif ($totalPaid > 0 && $totalPaid < $finalPrice) {
+                        $order->update(['payment_status' => 'partial']);
+                    } else {
+                        $order->update(['payment_status' => 'unpaid']);
+                    }
+                }
+            }
+
             DB::commit();
 
             $this->clearTransactionCache();
@@ -557,16 +657,20 @@ class TransactionController extends Controller
                 $fullname = $customerData->fullname ?? 'N/A';
                 $phone_number = $customerData->phone_number ? formatPhoneNumber($customerData->phone_number) : 'N/A';
 
-                // Pesan berdasarkan status pesanan
-                $statusMessages = [
-                    'pending' => "Pembayaran dengan kode '{$transaction->invoice_id}' sedang dalam proses verifikasi. Mohon menunggu konfirmasi dari Admin.",
-                    'success' => "Pembayaran dengan kode '{$transaction->invoice_id}' telah berhasil diverifikasi. Terima kasih atas pembayaran Anda.",
-                    'rejected' => "Pembayaran dengan kode '{$transaction->invoice_id}' tidak dapat diterima. Silakan periksa kembali detail pembayaran Anda dan lakukan konfirmasi ulang."
-                ];
+                if ($order->payment_status === 'paid') {
+                    $messageText = "Pembayaran telah diterima sepenuhnya. Terima kasih atas pembayaran Anda.";
+                } else {
+                    // Daftar pesan berdasarkan status
+                    $statusMessages = [
+                        'pending' => "Pembayaran dengan kode '{$transaction->invoice_id}' sedang dalam proses verifikasi. Mohon menunggu konfirmasi dari Admin.",
+                        'success' => "Pembayaran dengan kode '{$transaction->invoice_id}' telah berhasil diverifikasi. Terima kasih atas pembayaran Anda.",
+                        'rejected' => "Pembayaran dengan kode '{$transaction->invoice_id}' tidak dapat diterima. Silakan periksa kembali detail pembayaran Anda dan lakukan konfirmasi ulang."
+                    ];
 
+                    // Menentukan pesan sesuai status atau default
+                    $messageText = $statusMessages[$data['status']] ?? 'Status pembayaran tidak dikenali atau telah diperbarui.';
+                }
 
-                // Menyiapkan pesan untuk notifikasi
-                $messageText = $statusMessages[$data['status']] ?? 'Pembayaran telah diperbarui.';
                 $message = "Hai {$fullname}, {$messageText}";
                 $messageUrl = "https://wa.me/{$phone_number}?text=" . urlencode($message);
 
@@ -576,10 +680,13 @@ class TransactionController extends Controller
             return redirect(url("/order/{$order->id}/transaction"))->with('success', 'Pembayaran berhasil diperbarui.');
         } catch (\Exception $e) {
             DB::rollback();
+
             if ($uploadedFilePath && file_exists($uploadedFilePath)) {
                 @unlink($uploadedFilePath);
             }
+
             Log::error('Error: ' . $e->getMessage());
+
             return back()->with('error', 'Pembayaran gagal diperbarui. Silakan coba kembali.');
         }
     }
@@ -625,10 +732,13 @@ class TransactionController extends Controller
             return redirect(url("/order/{$order->id}/transaction"))->with('success', 'Pembayaran berhasil dihapus.');
         } catch (\Exception $e) {
             DB::rollback();
+
             if ($uploadedFilePath && file_exists($uploadedFilePath)) {
                 @unlink($uploadedFilePath);
             }
+
             Log::error('Error: ' . $e->getMessage());
+
             return back()->with('error', 'Pembayaran gagal dihapus. Silakan coba kembali.');
         }
     }

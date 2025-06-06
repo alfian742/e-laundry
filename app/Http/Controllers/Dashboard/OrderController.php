@@ -167,6 +167,136 @@ class OrderController extends Controller
         $this->isNotAllowed(['owner', 'admin', 'employee', 'customer']);
     }
 
+    // Checkout order (Customer)
+    public function checkoutStaffOrder(Request $request, $id)
+    {
+        $this->isAllowed(['owner', 'admin']);
+
+        $order = Order::with('orderDetails')->findOrFail($id);
+
+        $user = Auth::user();
+        $staff = $user->relatedStaff;
+
+        $rules = [
+            'customer_id' => 'required|exists:customers,id',
+            'order_status' => 'required|in:new,pending,pickup,in_progress,delivery,done,canceled',
+            'delivery_method_id' => 'required|exists:delivery_methods,id',
+            'delivery_cost' => 'required|numeric|min:0',
+            'pickup_date' => 'nullable|date',
+            'pickup_time' => 'nullable|date_format:H:i',
+            'delivery_date' => 'nullable|date',
+            'delivery_time' => 'nullable|date_format:H:i',
+            'notes' => 'nullable|string|max:500',
+        ];
+
+        $messages = [
+            'customer_id.required' => 'Pelanggan wajib dipilih.',
+            'customer_id.exists' => 'Pelanggan tidak valid.',
+            'delivery_method_id.required' => 'Metode antar/jemput wajib dipilih.',
+            'delivery_method_id.exists' => 'Metode antar/jemput tidak valid.',
+            'delivery_cost.required' => 'Biaya antar/jemput wajib diisi.',
+            'delivery_cost.numeric' => 'Biaya antar/jemput harus berupa angka.',
+            'pickup_date.date' => 'Tanggal jemput tidak valid.',
+            'pickup_time.date_format' => 'Format waktu jemput tidak valid.',
+            'delivery_date.date' => 'Tanggal antar tidak valid.',
+            'delivery_time.date_format' => 'Format waktu antar tidak valid.',
+            'notes.max' => 'Catatan maksimal 500 karakter.',
+            'order_status.required' => 'Status pesanan wajib dipilih.',
+            'order_status.in' => 'Status pesanan tidak valid.',
+        ];
+
+        $data = $request->validate($rules, $messages);
+
+        // Ambil semua detail dari order ini
+        $details = $order?->orderDetails;
+
+        try {
+            foreach ($details as $detail) {
+                $totalServicePrice = 0;
+                $detailId = $detail->id;
+
+                // Ambil input dari form
+                $weight = request()->input("weight_kg.$detailId");
+                $promoId = request()->input("promo_id.$detailId");
+
+
+                // Validasi input
+                $validation = Validator::make(request()->all(), [
+                    'weight_kg.*' => 'required|numeric|min:1',
+                ], [
+                    'weight_kg.*.required' => 'Berat/Jumlah tidak boleh kosong.',
+                    'weight_kg.*.numeric' => 'Berat/Jumlah harus berupa angka.',
+                    'weight_kg.*.min' => 'Berat/Jumlah minimal 1.',
+                ]);
+
+                if ($validation->fails()) {
+                    return redirect()->back()
+                        ->withErrors($validation)
+                        ->withInput();
+                }
+
+                // Ambil harga layanan terbaru
+                $service = $detail->includedService;
+                $pricePerKg = $service?->price_per_kg ?? 0;
+
+                // Ambil promo jika ada
+                $promo = $service->promos->where('id', $promoId)->first();
+                $discountPercent = $promo?->discount_percent ?? 0;
+                $totalBeforeDiscount = $weight * $pricePerKg;
+                $totalAfterDiscount = $totalBeforeDiscount * (1 - ($discountPercent / 100));
+
+                // Update detail item
+                $detail->update([
+                    'weight_kg' => $weight,
+                    'price_per_kg' => $pricePerKg,
+                    'promo_id' => $promoId,
+                    'discount_percent' => $discountPercent,
+                ]);
+
+                // Tambah ke total harga layanan
+                $totalServicePrice += $totalAfterDiscount;
+            }
+        } catch (\Exception $e) {
+            Log::error('Gagal memperbarui layanan', [
+                'error' => $e->getMessage(),
+            ]);
+
+            return back()->with('error', 'Layanan gagal diperbarui. Silakan coba kembali.');
+        }
+
+        try {
+            DB::beginTransaction();
+
+            $order->update([
+                'order_code' => 'ORD-' . now()->format('YmdHis') . '-' . strtoupper(Str::random(5)),
+                'customer_id' => $data['customer_id'],
+                'staff_id' => $staff->id,
+                'delivery_method_id' => $data['delivery_method_id'],
+                'delivery_cost' => $data['delivery_cost'],
+                'pickup_date' => $data['pickup_date'] ?? null,
+                'pickup_time' => $data['pickup_time'] ?? null,
+                'delivery_date' => $data['delivery_date'] ?? null,
+                'delivery_time' => $data['delivery_time'] ?? null,
+                'notes' => $data['notes'] ?? null,
+                'total_service_price' => $totalServicePrice,
+                'created_at' => now(),
+            ]);
+
+            DB::commit();
+
+            $this->clearAllOrderCache();
+            $this->clearAllScheduleCache();
+
+            return redirect(url('/order'))->with('success', 'Pesanan berhasil dibuat. Silakan masukan pembayaran.');
+        } catch (\Exception $e) {
+            DB::rollBack();
+
+            Log::error('Error: ' . $e->getMessage());
+
+            return back()->with('error', 'Pesanan gagal dibuat. Silakan coba kembali.');
+        }
+    }
+
     // Mengubah order yang telah dibuat
     public function edit($id)
     {
@@ -245,6 +375,11 @@ class OrderController extends Controller
         $customer = $user->relatedCustomer;
         $staff = $user->relatedStaff;
 
+        // Cegah pelanggan mengedit jika status order bukan "new"
+        if ($customer && $order->order_status !== 'new') {
+            return redirect()->back()->with('warning', 'Pesanan tidak dapat diubah.');
+        }
+
         $rules = [
             'staff_id' => 'nullable|exists:staffs,id',
             'delivery_method_id' => 'required|exists:delivery_methods,id',
@@ -281,50 +416,80 @@ class OrderController extends Controller
 
         $data = $request->validate($rules, $messages);
 
+        if ($staff) {
+            // Ambil semua detail dari order ini
+            $details = $order?->orderDetails;
+
+            try {
+                foreach ($details as $detail) {
+                    $totalServicePrice = 0;
+                    $detailId = $detail->id;
+
+                    // Ambil input dari form
+                    $weight = request()->input("weight_kg.$detailId");
+                    $promoId = request()->input("promo_id.$detailId");
+
+
+                    // Validasi input
+                    $validation = Validator::make(request()->all(), [
+                        'weight_kg.*' => 'required|numeric|min:1',
+                    ], [
+                        'weight_kg.*.required' => 'Berat/Jumlah tidak boleh kosong.',
+                        'weight_kg.*.numeric' => 'Berat/Jumlah harus berupa angka.',
+                        'weight_kg.*.min' => 'Berat/Jumlah minimal 1.',
+                    ]);
+
+                    if ($validation->fails()) {
+                        return redirect()->back()
+                            ->withErrors($validation)
+                            ->withInput();
+                    }
+
+                    // Ambil harga layanan terbaru
+                    $service = $detail->includedService;
+                    $pricePerKg = $service?->price_per_kg ?? 0;
+
+                    // Ambil promo jika ada
+                    $promo = $service->promos->where('id', $promoId)->first();
+                    $discountPercent = $promo?->discount_percent ?? 0;
+                    $totalBeforeDiscount = $weight * $pricePerKg;
+                    $totalAfterDiscount = $totalBeforeDiscount * (1 - ($discountPercent / 100));
+
+                    // Update detail item
+                    $detail->update([
+                        'weight_kg' => $weight,
+                        'price_per_kg' => $pricePerKg,
+                        'promo_id' => $promoId,
+                        'discount_percent' => $discountPercent,
+                    ]);
+
+                    // Tambah ke total harga layanan
+                    $totalServicePrice += $totalAfterDiscount;
+                }
+            } catch (\Exception $e) {
+                Log::error('Gagal memperbarui layanan', [
+                    'error' => $e->getMessage(),
+                ]);
+
+                return back()->with('error', 'Layanan gagal diperbarui. Silakan coba kembali.');
+            }
+        }
+
         try {
             DB::beginTransaction();
 
-            // Cek order_code apakah null atau tidak
-            $isNewOrder = $order->order_code === null;
-            $orderCode = $isNewOrder
-                ? 'ORD-' . now()->format('YmdHis') . '-' . strtoupper(Str::random(5))
-                : $order->order_code;
-
-            $createdAt = $isNewOrder ? now() : $order->created_at;
-
-            if ($customer) {
-                $message = 'Pesanan berhasil diperbarui. Silakan menunggu konfirmasi dari Admin.';
-            } elseif ($staff) {
-                $message = $isNewOrder
-                    ? 'Pesanan berhasil dibuat.'
-                    : 'Pesanan berhasil diperbarui.';
-            }
-
-            // Ambil semua detail dari order ini
-            $details = $order->orderDetails;
-            $allFinalServicePrice = 0; // Inisialisasi harga akhir
-
-            // Akumulasi semua harga akhir pada setiap layanan
-            foreach ($details as $detail) {
-                $allFinalServicePrice += $detail->final_service_price;
-            }
-
-            $totalServicePrice = $allFinalServicePrice;
-
             $order->update([
-                'order_code' => $orderCode,
-                'customer_id' => $customer ? $customer->id : $data['customer_id'],
+                'customer_id' => $staff ? $data['customer_id'] : $order->customer_id,
                 'staff_id' => $staff ? ($order->staff_id === null ? $staff->id : $order->staff_id) : null,
                 'delivery_method_id' => $data['delivery_method_id'],
                 'delivery_cost' => $data['delivery_cost'],
-                'total_service_price' => $totalServicePrice,
+                'total_service_price' => $staff ? $totalServicePrice : $order->total_service_price,
                 'pickup_date' => $data['pickup_date'] ?? null,
                 'pickup_time' => $data['pickup_time'] ?? null,
                 'delivery_date' => $data['delivery_date'] ?? null,
                 'delivery_time' => $data['delivery_time'] ?? null,
-                'order_status' => $customer ? $order->order_status : $data['order_status'],
+                'order_status' => $staff ? $data['order_status'] : $order->order_status,
                 'notes' => $data['notes'] ?? null,
-                'created_at' => $createdAt,
             ]);
 
             DB::commit();
@@ -354,10 +519,10 @@ class OrderController extends Controller
                 $message = "Hai {$fullname}, {$messageText}";
                 $messageUrl = "https://wa.me/{$phone_number}?text=" . urlencode($message);
 
-                return redirect(url('/order'))->with('success-with-url', 'Status pesanan berhasil diperbarui.')->with('url', $messageUrl);
+                return redirect(url('/order'))->with('success-with-url', 'Pesanan berhasil diperbarui.')->with('url', $messageUrl);
             }
 
-            return redirect('/order')->with('success', $message);
+            return redirect('/order')->with('success', 'Pesanan berhasil diperbarui.');
         } catch (\Exception $e) {
             DB::rollBack();
 
@@ -396,7 +561,7 @@ class OrderController extends Controller
                         $proof->delete(); // ProofOfPayment tidak pakai soft delete, jadi cukup delete
                     }
 
-                    $order->orderTransaction->forceDelete(); // Transaction pakai soft delete
+                    $transaction->forceDelete(); // Transaction pakai soft delete
                 }
             }
 
@@ -483,71 +648,6 @@ class OrderController extends Controller
         }
     }
 
-
-    // Update semua layanan dari order yang telah dibuat (Owner, Admin, Employee)
-    public function updateServicesFromOrder($id)
-    {
-        $this->isNotAllowed(['customer']);
-
-        $order = Order::findOrFail($id);
-
-        // Ambil semua detail dari order ini
-        $details = $order->orderDetails;
-
-        try {
-            foreach ($details as $detail) {
-                $detailId = $detail->id;
-
-                // Ambil input dari form
-                $weight = request()->input("weight_kg.$detailId");
-                $promoId = request()->input("promo_id.$detailId");
-
-
-                // Validasi input
-                $data = Validator::make(request()->all(), [
-                    "weight_kg.$detailId" => 'required|numeric|min:1',
-                ], [
-                    "weight_kg.$detailId.required" => "Berat/Jumlah tidak boleh kosong.",
-                    "weight_kg.$detailId.numeric" => "Berat/Jumlah harus berupa angka.",
-                    "weight_kg.$detailId.min" => "Berat/Jumlah minimal 1.",
-                ]);
-
-                if ($data->fails()) {
-                    return redirect()->back()
-                        ->withErrors($data)
-                        ->withInput();
-                }
-
-                // Ambil harga layanan terbaru
-                $service = $detail->includedService;
-                $pricePerKg = $service?->price_per_kg ?? 0;
-
-                // Ambil promo jika ada
-                $promo = $service->promos->where('id', $promoId)->first();
-                $discountPercent = $promo?->discount_percent ?? 0;
-
-                // Update detail item
-                $detail->update([
-                    'weight_kg' => $weight,
-                    'price_per_kg' => $pricePerKg,
-                    'promo_id' => $promoId,
-                    'discount_percent' => $discountPercent,
-                ]);
-            }
-
-            $this->clearAllOrderCache();
-            $this->clearAllScheduleCache();
-
-            return redirect()->back()->with('success', 'Layanan berhasil diperbarui.');
-        } catch (\Exception $e) {
-            Log::error('Gagal memperbarui layanan', [
-                'error' => $e->getMessage(),
-            ]);
-
-            return back()->with('error', 'Layanan gagal diperbarui. Silakan coba kembali.');
-        }
-    }
-
     // Hapus layanan dari order yang telah dibuat (Owner, Admin, Employee)
     public function destroyServiceFromOrder(Order $order, OrderServiceDetail $detail)
     {
@@ -572,7 +672,7 @@ class OrderController extends Controller
 
             if ($order->orderDetails()->count() === 0) {
                 $order->forceDelete();
-                $url = url('/order');
+                $url = redirect(url('/order'));
                 $message = 'Layanan terakhir telah dihapus. Pesanan juga dihapus karena tidak lagi memiliki layanan.';
             } else {
                 $url = back();
@@ -584,7 +684,7 @@ class OrderController extends Controller
             $this->clearAllOrderCache();
             $this->clearAllScheduleCache();
 
-            return redirect($url)->with('success', $message);
+            return $url->with('success', $message);
         } catch (\Exception $e) {
             DB::rollBack();
 
@@ -947,57 +1047,6 @@ class OrderController extends Controller
             }
 
             return redirect()->back()->with('success-with-url', 'Status pesanan berhasil diperbarui.')->with('url', $messageUrl);
-        } catch (\Exception $e) {
-            Log::error('Error: ' . $e->getMessage());
-
-            return back()->with('error', 'Pesanan gagal diperbarui. Silakan coba kembali.');
-        }
-    }
-
-    // Update status pembayaran
-    public function updatePaymentStatus(Request $request, $orderId)
-    {
-        $this->isAllowed(['owner', 'admin']);
-
-        $order = Order::findOrFail($orderId);
-
-        $data = $request->validate([
-            'payment_status' => [
-                'required',
-                'in:unpaid,partial,paid',
-            ]
-        ]);
-
-        try {
-            $customerData = $order->orderingCustomer;
-            if (!$customerData) {
-                return back()->with('error', 'Data pelanggan tidak ditemukan.');
-            }
-
-            $fullname = $customerData->fullname;
-            $phone_number = formatPhoneNumber($customerData->phone_number);
-
-            // Pesan berdasarkan status pembayaran
-            $statusMessages = [
-                'unpaid' => "Pembayaran belum diterima. Silakan lakukan pembayaran untuk memproses pesanan Anda.",
-                'partial' => "Sebagian pembayaran telah diterima. Mohon selesaikan sisa pembayaran untuk melanjutkan proses pesanan.",
-                'paid' => "Pembayaran telah diterima sepenuhnya. Terima kasih atas pembayaran Anda.",
-            ];
-
-            // Menyiapkan pesan untuk notifikasi
-            $messageText = $statusMessages[$data['payment_status']] ?? 'Status pembayaran telah diperbarui.';
-            $message = "Hai {$fullname}, {$messageText}";
-            $messageUrl = "https://wa.me/{$phone_number}?text=" . urlencode($message);
-
-            // Update status pembayaran
-            $order->update([
-                'payment_status' => $data['payment_status'],
-            ]);
-
-            $this->clearAllOrderCache();
-            $this->clearAllScheduleCache();
-
-            return redirect()->back()->with('success-with-url', 'Status pembayaran berhasil diperbarui.')->with('url', $messageUrl);
         } catch (\Exception $e) {
             Log::error('Error: ' . $e->getMessage());
 

@@ -30,30 +30,6 @@
                                         : url('/service') }}"
                                         class="btn btn-secondary">Kembali</a>
                                 @endif
-
-                                @if ($isOwner || $isAdmin)
-                                    <div class="d-flex align-items-center" style="gap: .5rem">
-                                        <a href="{{ url("service/{$service->id}/manage-promo") }}" class="btn btn-warning"
-                                            data-toggle="tooltip" title="Kelola Promo">
-                                            <i class="fas fa-gift"></i>
-                                        </a>
-
-                                        <a href="{{ url("/service/{$service->id}/edit") }}" class="btn btn-primary"
-                                            data-toggle="tooltip" title="Ubah">
-                                            <i class="fas fa-pencil-alt"></i>
-                                        </a>
-
-                                        <form action="{{ route('service.destroy', $service->id) }}" method="POST"
-                                            id="delete-form-{{ $service->id }}" class="d-inline">
-                                            @csrf
-                                            @method('delete')
-                                            <button type="submit" class="btn btn-danger btn-delete" data-toggle="tooltip"
-                                                title="Hapus">
-                                                <i class="fas fa-trash"></i>
-                                            </button>
-                                        </form>
-                                    </div>
-                                @endif
                             </div>
 
                             <div class="row g-4 justify-content-center">
@@ -201,35 +177,4 @@
 @endsection
 
 @push('scripts')
-    @if ($isOwner || $isAdmin)
-        <script>
-            $(document).ready(function() {
-                // Gunakan delegasi untuk tombol hapus
-                $(document).on('click', '.btn-delete', function(e) {
-                    e.preventDefault();
-
-                    const formId = $(this).closest('form').attr('id');
-
-                    swal({
-                        title: 'Hapus Data',
-                        text: 'Apakah Anda yakin ingin menghapus data ini?',
-                        icon: 'warning',
-                        buttons: {
-                            cancel: 'Batal',
-                            confirm: {
-                                text: 'Ya, Hapus!',
-                                value: true,
-                                className: 'btn-danger',
-                            }
-                        },
-                        dangerMode: true,
-                    }).then((willDelete) => {
-                        if (willDelete) {
-                            $('#' + formId).submit();
-                        }
-                    });
-                });
-            });
-        </script>
-    @endif
 @endpush

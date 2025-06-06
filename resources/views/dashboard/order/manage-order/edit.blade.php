@@ -22,6 +22,12 @@
         .table-custom tr td:nth-child(2) {
             width: 1rem !important;
         }
+
+        @media (min-width: 768px) {
+            .w-md-100 {
+                width: 100%;
+            }
+        }
     </style>
 @endpush
 
@@ -40,101 +46,120 @@
                     <div class="card">
                         <div class="card-body">
                             <div class="row g-4 justify-content-center">
+                                @if (!$isCustomer)
+                                    <div class="col-12">
+                                        <form method="POST" action="{{ route('order.service.store', $order->id) }}"
+                                            class="row g-4 mb-4">
+                                            <div class="col-sm-12 col-md-6">
+                                                @csrf
+                                            </div>
+                                            <div class="col-sm-12 col-md-4 mb-4 mb-md-0 pr-md-1">
+                                                <div class="form-group mb-0">
+                                                    <label class="d-none" for="service_id">&nbsp;</label>
+                                                    <select name="service_id" id="service_id"
+                                                        class="custom-select select2 custom-select2 @error('service_id') is-invalid @enderror">
+                                                        <option value="" selected disabled>
+                                                            @if ($services->isEmpty())
+                                                                -- Tidak ada layanan yang tersedia --
+                                                            @else
+                                                                -- Pilih Layanan --
+                                                            @endif
+                                                        </option>
+                                                        @foreach ($services as $service)
+                                                            <option value="{{ $service->id }}"
+                                                                {{ old('service_id') == $service->id ? 'selected' : '' }}>
+                                                                {{ $service->service_name ?? 'N/A' }}
+                                                            </option>
+                                                        @endforeach
+                                                    </select>
+                                                    <div class="invalid-feedback">
+                                                        @error('service_id')
+                                                            {{ $message }}
+                                                        @enderror
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="col-sm-12 col-md-2 pl-md-2 text-right text-md-left">
+                                                <button type="submit" class="btn btn-primary w-md-100 py-2"
+                                                    {{ $services->isEmpty() ? 'disabled' : '' }}>
+                                                    Tambahkan
+                                                </button>
+                                            </div>
+                                        </form>
+                                    </div>
+                                @endif
+
                                 @if (!$details->isEmpty())
                                     <div class="col-12">
                                         @if (!$isCustomer)
-                                            <div class=" d-flex flex-wrap justify-content-end align-items-center mb-4"
-                                                style="gap: .5rem">
-                                                <form method="POST" action="{{ route('order.service.store', $order->id) }}"
-                                                    class="ml-auto" style="width: 30rem">
-                                                    @csrf
-                                                    <div class="input-group justify-content-center">
-                                                        <label class="d-none" for="service_id">&nbsp;</label>
-                                                        <select name="service_id" id="service_id"
-                                                            class="custom-select select2 @error('service_id') is-invalid @enderror">
-                                                            <option value="" selected disabled>
-                                                                @if ($services->isEmpty())
-                                                                    -- Tidak ada layanan yang tersedia --
-                                                                @else
-                                                                    -- Pilih Layanan --
-                                                                @endif
-                                                            </option>
-                                                            @foreach ($services as $service)
-                                                                <option value="{{ $service->id }}"
-                                                                    {{ old('service_id') == $service->id ? 'selected' : '' }}>
-                                                                    {{ $service->service_name ?? 'N/A' }}
-                                                                </option>
-                                                            @endforeach
-                                                        </select>
-                                                        <div class="input-group-append">
-                                                            <button type="submit" class="btn btn-primary"
-                                                                style="border-start-end-radius: .25rem; border-end-end-radius: .25rem;"
-                                                                {{ $services->isEmpty() ? 'disabled' : '' }}>Tambahkan</button>
-                                                        </div>
-                                                        <div class="invalid-feedback">
-                                                            @error('service_id')
-                                                                {{ $message }}
-                                                            @enderror
-                                                        </div>
-                                                    </div>
-                                                </form>
-                                            </div>
-
                                             <div class="alert bg-light text-dark mb-4" role="alert">
-                                                <h6>Panduan Menerapkan Promo</h6>
-                                                <p class="text-lead mb-0">Klik nama layanan untuk melihat daftar promo serta
-                                                    syarat dan ketentuan yang
-                                                    berlaku sebelum menggunakan promo pada layanan tersebut.</p>
+                                                <h6 class="mb-2">Penerapan Promo</h6>
+                                                <p class="text-lead mb-0">
+                                                    Sistem akan secara otomatis memilih promo yang tersedia pada setiap
+                                                    layanan berdasarkan tipe pelanggan (Member/Non-Member) serta tipe promo
+                                                    yang berlaku (Harian atau Periode tertentu) dengan diskon yang paling
+                                                    besar.
+                                                    Anda juga dapat mengatur promo secara manual jika diperlukan.
+                                                </p>
                                             </div>
+                                        @endif
 
-                                            <form action="{{ route('order.service.update', $order->id) }}" method="POST">
-                                                @csrf
-                                                @method('put')
-                                                <div class="table-responsive mb-4">
-                                                    <table
-                                                        class="table table-sm table-bordered table-nowrap table-align-middle">
-                                                        <thead class="bg-light text-center">
-                                                            <tr>
-                                                                <th rowspan="2">Nama Layanan</th>
-                                                                <th rowspan="2">Harga per (Kg/Item)</th>
-                                                                <th rowspan="2">
-                                                                    <span class="text-danger">*</span>
-                                                                    Berat (Kg)/Jumlah (Item)
-                                                                </th>
-                                                                <th rowspan="2">Subtotal</th>
-                                                                <th rowspan="2">Promo</th>
-                                                                <th colspan="2">
-                                                                    <span class="text-danger">*</span> Diskon
-                                                                </th>
-                                                                <th rowspan="2">
-                                                                    Total
-                                                                    <br>
-                                                                    (Subtotal - Diskon)
-                                                                </th>
+                                        <form action="{{ route('order.update', $order->id) }}" method="POST">
+                                            @csrf
+                                            @method('put')
+
+                                            <div class="table-responsive mb-4">
+                                                <table
+                                                    class="table table-sm table-bordered table-nowrap table-align-middle">
+                                                    <thead class="bg-light text-center">
+                                                        <tr>
+                                                            <th rowspan="2">Nama Layanan</th>
+                                                            <th rowspan="2">Harga per (Kg/Item)</th>
+                                                            <th rowspan="2">
+                                                                {!! $isCustomer ? '<span class="text-danger">*</span>' : '' !!}
+                                                                Berat (Kg)/Jumlah (Item)
+                                                            </th>
+                                                            <th rowspan="2">Subtotal</th>
+                                                            <th rowspan="2">Promo</th>
+                                                            <th colspan="2">
+                                                                {!! $isCustomer ? '<span class="text-danger">*</span>' : '' !!} Diskon
+                                                            </th>
+                                                            <th rowspan="2">
+                                                                Total
+                                                                <br>
+                                                                (Subtotal - Diskon)
+                                                            </th>
+                                                            @if (!$isCustomer)
                                                                 <th rowspan="2">Aksi</th>
-                                                            </tr>
-                                                            <tr>
-                                                                <th>(%)</th>
-                                                                <th>(Rp)</th>
-                                                            </tr>
-                                                        </thead>
-                                                        <tbody>
-                                                            @php $finalServicePrice = 0 @endphp
-                                                            @foreach ($details as $detail)
-                                                                @php
-                                                                    $service = $detail?->includedService;
-                                                                    $promo = $detail?->includedPromo;
-                                                                @endphp
+                                                            @endif
+                                                        </tr>
+                                                        <tr>
+                                                            <th>(%)</th>
+                                                            <th>(Rp)</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        @php $finalServicePrice = 0 @endphp
+                                                        @foreach ($details as $detail)
+                                                            @php
+                                                                $service = $detail?->includedService;
+                                                                $promo = $detail?->includedPromo;
+                                                            @endphp
 
-                                                                <tr>
-                                                                    <td>
+                                                            <tr>
+                                                                <td>
+                                                                    @if (!$isCustomer)
                                                                         <a
                                                                             href="{{ url("/service/{$service->id}") }}">{{ $service->service_name ?? '-' }}</a>
-                                                                    </td>
-                                                                    <td class="text-right">
-                                                                        <span id="price_per_kg-{{ $detail->id }}"
-                                                                            data-price_per_kg="{{ $service->price_per_kg }}">{{ formatRupiah($service->price_per_kg) ?? '-' }}</span>
-                                                                    </td>
+                                                                    @else
+                                                                        {{ $service->service_name ?? '-' }}
+                                                                    @endif
+                                                                </td>
+                                                                <td class="text-right">
+                                                                    <span id="price_per_kg-{{ $detail->id }}"
+                                                                        data-price_per_kg="{{ $detail->price_per_kg }}">{{ formatRupiah($detail->price_per_kg) ?? '-' }}</span>
+                                                                </td>
+                                                                @if (!$isCustomer)
                                                                     <td>
                                                                         <div class="form-group mb-0">
                                                                             <label for="weight_kg-{{ $detail->id }}"
@@ -170,60 +195,113 @@
                                                                             </div>
                                                                         </div>
                                                                     </td>
-                                                                    <td class="text-right" style="min-width: 10rem;">
-                                                                        <span id="total_price-{{ $detail->id }}"
-                                                                            data-total_price="{{ $detail->total_price }}">{{ formatRupiah($detail->total_price) ?? '-' }}</span>
+                                                                @else
+                                                                    <td class="text-right">
+                                                                        {{ intval($detail->weight_kg) }}
                                                                     </td>
+                                                                @endif
+                                                                <td class="text-right" style="min-width: 10rem;">
+                                                                    <span id="total_price-{{ $detail->id }}"
+                                                                        data-total_price="{{ $detail->total_price }}">{{ formatRupiah($detail->total_price) ?? '-' }}</span>
+                                                                </td>
+                                                                @if (!$isCustomer)
                                                                     <td>
+                                                                        @php
+                                                                            $today = \Carbon\Carbon::now();
+                                                                            $todayName = strtolower(
+                                                                                $today->format('l'),
+                                                                            );
+
+                                                                            $filteredPromos = $service->promos
+                                                                                ->where('active', true)
+                                                                                ->filter(function ($promo) use (
+                                                                                    $today,
+                                                                                    $todayName,
+                                                                                ) {
+                                                                                    if (
+                                                                                        $promo->promo_type === 'daily'
+                                                                                    ) {
+                                                                                        return $promo->day_of_week ===
+                                                                                            $todayName;
+                                                                                    } elseif (
+                                                                                        $promo->promo_type ===
+                                                                                        'date_range'
+                                                                                    ) {
+                                                                                        return $today->between(
+                                                                                            \Carbon\Carbon::parse(
+                                                                                                $promo->start_date,
+                                                                                            )->startOfDay(),
+                                                                                            \Carbon\Carbon::parse(
+                                                                                                $promo->end_date,
+                                                                                            )->endOfDay(),
+                                                                                        );
+                                                                                    }
+                                                                                    return false;
+                                                                                });
+
+                                                                            // Simpan promo diskon terbesar, nanti akan dipilih otomatis lewat JS jika cocok dengan customer_type
+                                                                            $autoSelectedPromo = $filteredPromos
+                                                                                ->sortByDesc('discount_percent')
+                                                                                ->first();
+                                                                        @endphp
+
                                                                         <div class="form-group mb-0"
                                                                             style="width: 17.5rem;">
-                                                                            <label class="d-none"
-                                                                                for="promo_id-{{ $detail->id }}">&nbsp;</label>
-                                                                            <select name="promo_id[{{ $detail->id }}]"
-                                                                                id="promo_id-{{ $detail->id }}"
-                                                                                class="custom-select select2 @error('promo_id.' . $detail->id) is-invalid @enderror">
-
-                                                                                <option value=""
-                                                                                    data-discount_percent="0">
-                                                                                    @if ($service->promos->where('active', true)->isNotEmpty())
-                                                                                        -- Pilih Promo --
-                                                                                    @else
-                                                                                        Tidak ada promo terkait layanan ini
-                                                                                    @endif
-                                                                                </option>
-
-                                                                                @foreach ($service->promos->where('active', true) ?? [] as $promo)
-                                                                                    <option value="{{ $promo->id }}"
-                                                                                        data-discount_percent="{{ intval($promo->discount_percent) }}"
-                                                                                        {{ old('promo_id.' . $detail->id, $detail->promo_id) == $promo->id ? 'selected' : '' }}>
-                                                                                        {{ $promo->promo_name ?? 'N/A' }}
-                                                                                        ({{ $promo->customer_scope === 'member' ? 'Member' : 'Non-Member' }})
-                                                                                    </option>
-                                                                                @endforeach
-                                                                            </select>
-                                                                            <div class="invalid-feedback">
-                                                                                @error('promo_id.' . $detail->id)
-                                                                                    {{ $message }}
-                                                                                @enderror
-                                                                            </div>
+                                                                            @if ($filteredPromos->isNotEmpty())
+                                                                                <label class="d-none"
+                                                                                    for="promo_id-{{ $detail->id }}">&nbsp;</label>
+                                                                                <select
+                                                                                    name="promo_id[{{ $detail->id }}]"
+                                                                                    id="promo_id-{{ $detail->id }}"
+                                                                                    class="custom-select select2 promo-select"
+                                                                                    data-detail_id="{{ $detail->id }}"
+                                                                                    data-best_promo_id="{{ $autoSelectedPromo?->id ?? '' }}">
+                                                                                    <option value=""
+                                                                                        data-discount_percent="0"
+                                                                                        data-customer_scope="">-- Pilih
+                                                                                        Promo --</option>
+                                                                                    @foreach ($filteredPromos as $promo)
+                                                                                        <option value="{{ $promo->id }}"
+                                                                                            data-discount_percent="{{ intval($promo->discount_percent) }}"
+                                                                                            data-customer_scope="{{ $promo->customer_scope }}">
+                                                                                            {{ $promo->promo_name ?? 'N/A' }}
+                                                                                            ({{ $promo->customer_scope === 'member' ? 'Member' : 'Non-Member' }})
+                                                                                        </option>
+                                                                                    @endforeach
+                                                                                </select>
+                                                                                <div class="invalid-feedback">
+                                                                                    Pilih pelanggan terlebih dahulu
+                                                                                </div>
+                                                                            @else
+                                                                                <input type="hidden"
+                                                                                    name="promo_id[{{ $detail->id }}]"
+                                                                                    value="">
+                                                                                <div class="text-muted">Tidak ada promo
+                                                                                    yang tersedia</div>
+                                                                            @endif
                                                                         </div>
                                                                     </td>
-                                                                    <td class="text-right" style="min-width: 5rem;">
-                                                                        <span id="discount_percent-{{ $detail->id }}">
-                                                                            {{ $detail->discount_percent ? intval($detail->discount_percent) . '%' : '-' }}
-                                                                        </span>
+                                                                @else
+                                                                    <td>
+                                                                        {{ $order?->includedPromo?->promo_name ?? '-' }}
                                                                     </td>
-                                                                    <td class="text-right" style="min-width: 10rem;">
-                                                                        <span id="discount_price-{{ $detail->id }}">
-                                                                            {{ formatRupiah($detail->total_price * ($detail->discount_percent / 100)) ?? '-' }}
-                                                                        </span>
-                                                                    </td>
-                                                                    <td class="text-right" style="min-width: 10rem;">
-                                                                        <span
-                                                                            id="final_service_price-{{ $detail->id }}">
-                                                                            {{ formatRupiah($detail->final_service_price) ?? '-' }}
-                                                                        </span>
-                                                                    </td>
+                                                                @endif
+                                                                <td class="text-right" style="min-width: 5rem;">
+                                                                    <span id="discount_percent-{{ $detail->id }}">
+                                                                        {{ $detail->discount_percent ? intval($detail->discount_percent) . '%' : '-' }}
+                                                                    </span>
+                                                                </td>
+                                                                <td class="text-right" style="min-width: 10rem;">
+                                                                    <span id="discount_price-{{ $detail->id }}">
+                                                                        {{ formatRupiah($detail->total_price * ($detail->discount_percent / 100)) ?? '-' }}
+                                                                    </span>
+                                                                </td>
+                                                                <td class="text-right" style="min-width: 10rem;">
+                                                                    <span id="final_service_price-{{ $detail->id }}">
+                                                                        {{ formatRupiah($detail->final_service_price) ?? '-' }}
+                                                                    </span>
+                                                                </td>
+                                                                @if (!$isCustomer)
                                                                     <td class="text-center" style="min-width: 5rem;">
                                                                         <button type="button"
                                                                             class="btn btn-danger btn-delete"
@@ -232,139 +310,54 @@
                                                                             <i class="fas fa-trash"></i>
                                                                         </button>
                                                                     </td>
-                                                                </tr>
-                                                                @php $finalServicePrice += $detail->final_service_price; @endphp
-                                                            @endforeach
-                                                        </tbody>
-                                                        <tfoot class="bg-light">
-                                                            <tr>
-                                                                <td colspan="7" class="text-center font-weight-bold">
-                                                                    Total
-                                                                    Harga Pesanan</td>
-                                                                <td class="text-right font-weight-bold">
-                                                                    <span id="total">
-                                                                        {{ formatRupiah($finalServicePrice) ?? '-' }}
-                                                                    </span>
-                                                                </td>
-                                                                <td>&nbsp;</td>
-                                                            </tr>
-                                                        </tfoot>
-                                                    </table>
-                                                </div>
-
-                                                <div class="d-flex justify-content-center justify-content-sm-end align-items-center mb-4"
-                                                    style="gap: .5rem">
-                                                    <button type="submit" class="btn btn-primary">Perbarui
-                                                        Layanan</button>
-                                                </div>
-                                            </form>
-                                        @else
-                                            <div class="table-responsive mb-4">
-                                                <table
-                                                    class="table table-sm table-bordered table-nowrap table-align-middle">
-                                                    <thead class="bg-light text-center">
-                                                        <tr>
-                                                            <th rowspan="2">Nama Layanan</th>
-                                                            <th rowspan="2">Harga per (Kg/Item)</th>
-                                                            <th rowspan="2">
-                                                                <span class="text-danger">*</span>
-                                                                Berat (Kg)/Jumlah (Item)
-                                                            </th>
-                                                            <th rowspan="2">Subtotal</th>
-                                                            <th rowspan="2">Promo</th>
-                                                            <th colspan="2">
-                                                                <span class="text-danger">*</span> Diskon
-                                                            </th>
-                                                            <th rowspan="2">
-                                                                Total
-                                                                <br>
-                                                                (Subtotal - Diskon)
-                                                            </th>
-                                                        </tr>
-                                                        <tr>
-                                                            <th>(%)</th>
-                                                            <th>(Rp)</th>
-                                                        </tr>
-                                                    </thead>
-                                                    <tbody>
-                                                        @php $finalServicePrice = 0 @endphp
-                                                        @foreach ($details as $detail)
-                                                            @php
-                                                                $service = $detail?->includedService;
-                                                                $promo = $detail?->includedPromo;
-                                                            @endphp
-
-                                                            <tr>
-                                                                <td>
-                                                                    {{ $service->service_name ?? '-' }}
-                                                                </td>
-                                                                <td class="text-right">
-                                                                    {{ formatRupiah($service->price_per_kg) ?? '-' }}
-                                                                </td>
-                                                                <td class="text-right">
-                                                                    {{ $detail->weight_kg ? intval($detail->weight_kg) : '-' }}
-                                                                </td>
-                                                                <td class="text-right">
-                                                                    {{ formatRupiah($detail->total_price) ?? '-' }}
-                                                                </td>
-                                                                <td>
-                                                                    {{ $promo->promo_name ?? '-' }}
-                                                                </td>
-                                                                <td class="text-right">
-                                                                    {{ $detail->discount_percent ? intval($detail->discount_percent) . '%' : '-' }}
-                                                                </td>
-                                                                <td class="text-right">
-                                                                    {{ formatRupiah($detail->total_price * ($detail->discount_percent / 100)) ?? '-' }}
-                                                                </td>
-                                                                <td class="text-right">
-                                                                    {{ formatRupiah($detail->final_service_price) ?? '-' }}
-                                                                </td>
+                                                                @endif
                                                             </tr>
                                                             @php $finalServicePrice += $detail->final_service_price; @endphp
                                                         @endforeach
                                                     </tbody>
                                                     <tfoot class="bg-light">
                                                         <tr>
-                                                            <td colspan="7" class="text-center font-weight-bold">Total
+                                                            <td colspan="7" class="text-center font-weight-bold">
+                                                                Total
                                                                 Harga Pesanan</td>
                                                             <td class="text-right font-weight-bold">
                                                                 <span id="total">
                                                                     {{ formatRupiah($finalServicePrice) ?? '-' }}
                                                                 </span>
                                                             </td>
+                                                            @if (!$isCustomer)
+                                                                <td>&nbsp;</td>
+                                                            @endif
                                                         </tr>
                                                     </tfoot>
                                                 </table>
                                             </div>
 
-                                            <div class="mb-4">
-                                                <div class="section-title">Keterangan</div>
-                                                <p class="section-lead mb-1">
-                                                    <span class="bullet"></span> <strong><span
-                                                            class="text-danger">*</span>
-                                                        Berat (Kg)/Jumlah (Item)</strong>
-                                                    akan diisi oleh petugas berdasarkan hasil penimbangan atau jumlah item
-                                                    yang diterima.
-                                                </p>
-                                                <p class="section-lead mb-0">
-                                                    <span class="bullet"></span> <strong><span
-                                                            class="text-danger">*</span>
-                                                        Diskon</strong> akan diberikan
-                                                    sesuai dengan syarat dan ketentuan promo yang berlaku.
-                                                </p>
-                                                <p class="section-lead mt-1">
-                                                    <span class="bullet"></span> Layanan pada pesanan ini tidak dapat
-                                                    <strong>diubah</strong>, <strong>ditambah</strong>, maupun
-                                                    <strong>dihapus</strong>.
-                                                </p>
-                                            </div>
-                                        @endif
+                                            @if ($isCustomer)
+                                                <div class="mb-4">
+                                                    <div class="section-title">Keterangan</div>
+                                                    <p class="section-lead mb-1">
+                                                        <span class="bullet"></span> <strong><span
+                                                                class="text-danger">*</span>
+                                                            Berat (Kg)/Jumlah (Item)</strong>
+                                                        akan diisi oleh Admin berdasarkan hasil penimbangan atau jumlah item
+                                                        yang diterima.
+                                                    </p>
+                                                    <p class="section-lead mb-1">
+                                                        <span class="bullet"></span> <strong><span
+                                                                class="text-danger">*</span>
+                                                            Diskon</strong> akan diberikan
+                                                        sesuai dengan syarat dan ketentuan promo yang berlaku.
+                                                    </p>
+                                                    <p class="section-lead mb-0">
+                                                        <span class="bullet"></span> Layanan pada pesanan ini <strong>tidak
+                                                            dapat diubah</strong>
+                                                    </p>
+                                                </div>
+                                            @endif
 
-                                        <hr class="my-4">
+                                            <hr class="my-4">
 
-                                        <form action="{{ route('order.update', $order->id) }}" method="POST">
-                                            @csrf
-                                            @method('put')
                                             <div class="row g-4">
                                                 @if (!$isCustomer)
                                                     <div class="form-group col-md-6">
@@ -376,6 +369,7 @@
                                                             </option>
                                                             @foreach ($customers as $customer)
                                                                 <option value="{{ $customer->id }}"
+                                                                    data-customer_type ="{{ $customer->customer_type }}"
                                                                     {{ old('customer_id', $order->customer_id) == $customer->id ? 'selected' : '' }}>
                                                                     {{ $customer->fullname ?? 'N/A' }}
                                                                     ({{ $customer->customer_type === 'member' ? 'Member' : 'Non-Member' }})
@@ -388,37 +382,22 @@
                                                             @enderror
                                                         </div>
                                                     </div>
-                                                @else
+
                                                     <div class="form-group col-md-6">
-                                                        <label for="customer_fullname">Nama Pelanggan <span
+                                                        <label for="order_code">Kode Pesanan <span
                                                                 class="text-danger">*</span></label>
-                                                        <input id="customerfull_name" type="text"
-                                                            class="form-control @error('customer_fullname') is-invalid @enderror"
-                                                            name="customerfull_name"
-                                                            value="{{ old('customer_fullname', $order->orderingCustomer?->fullname) }}"
-                                                            placeholder="Jhon Doe" readonly>
+                                                        <input id="order_code" type="text"
+                                                            class="form-control bg-light @error('order_code') is-invalid @enderror"
+                                                            name="order_code"
+                                                            value="{{ old('order_code', $order->order_code) }}"
+                                                            placeholder="Dibuat otomatis oleh sistem" readonly>
                                                         <div class="invalid-feedback">
-                                                            @error('customer_fullname')
+                                                            @error('order_code')
                                                                 {{ $message }}
                                                             @enderror
                                                         </div>
                                                     </div>
                                                 @endif
-
-                                                <div class="form-group col-md-6">
-                                                    <label for="order_code">Kode Pesanan <span
-                                                            class="text-danger">*</span></label>
-                                                    <input id="order_code" type="text"
-                                                        class="form-control @error('order_code') is-invalid @enderror"
-                                                        name="order_code"
-                                                        value="{{ old('order_code', $order->order_code) }}"
-                                                        placeholder="ORD-**************-*****" readonly>
-                                                    <div class="invalid-feedback">
-                                                        @error('order_code')
-                                                            {{ $message }}
-                                                        @enderror
-                                                    </div>
-                                                </div>
 
                                                 <div class="form-group col-md-6">
                                                     <label for="delivery_method_id">Metode Antar/Jemput <span
@@ -451,10 +430,10 @@
                                                             <span class="input-group-text bg-light">Rp</span>
                                                         </div>
                                                         <input id="delivery_cost" type="text"
-                                                            class="form-control @error('delivery_cost') is-invalid @enderror"
+                                                            class="form-control bg-light @error('delivery_cost') is-invalid @enderror"
                                                             style="border-start-end-radius: .25rem; border-end-end-radius: .25rem;"
                                                             name="delivery_cost"
-                                                            value="{{ old('delivery_cost', $order->delivery_cost) }}"
+                                                            value="{{ formatRupiahPlain(old('delivery_cost', $order->delivery_cost)) }}"
                                                             placeholder="0" readonly>
                                                         <div class="invalid-feedback">
                                                             @error('delivery_cost')
@@ -577,14 +556,6 @@
                                                 <div class="col-12">
                                                     <hr class="my-4">
 
-                                                    @php
-                                                        $hasUnweighedItem = collect($details)->contains(function (
-                                                            $item,
-                                                        ) {
-                                                            return $item->weight_kg == 0; // loose comparison: aman di kasus ini
-                                                        });
-                                                    @endphp
-
                                                     <div class="table-responsive mb-4 mb-md-0">
                                                         <table class="table table-sm table-borderless table-custom">
                                                             <tr>
@@ -623,34 +594,12 @@
                                                 </div>
 
                                                 <div class="col-12">
-                                                    <div class="d-flex flex-wrap justify-content-center justify-content-sm-between align-items-center"
-                                                        style="gap: 1.5rem">
-                                                        @if (!$isCustomer)
-                                                            <p class="text-lead mb-0">
-                                                                <span class="text-danger">*</span>
-                                                                Pastikan layanan telah diperbarui sebelum menyimpan data.
-                                                            </p>
-                                                        @endif
+                                                    <div class="d-flex justify-content-center justify-content-sm-end align-items-center"
+                                                        style="gap: .5rem">
+                                                        <a href="{{ url('/order') }}"
+                                                            class="btn btn-secondary">Kembali</a>
 
-                                                        <div class="d-flex align-items-center ml-sm-auto"
-                                                            style="gap: .5rem">
-                                                            <a href="{{ url('/order') }}"
-                                                                class="btn btn-secondary">Kembali</a>
-
-                                                            @php
-                                                                $hasUnweighedItem = collect($details)->contains(
-                                                                    function ($item) {
-                                                                        return $item->weight_kg == 0; // loose comparison: aman di kasus ini
-                                                                    },
-                                                                );
-
-                                                                $disable =
-                                                                    'disabled data-toggle="tooltip" title="Layanan belum diperbarui"';
-                                                            @endphp
-
-                                                            <button type="submit" class="btn btn-primary"
-                                                                {!! !$isCustomer ? (!$hasUnweighedItem && count($details) > 0 ? '' : $disable) : '' !!}>Simpan</button>
-                                                        </div>
+                                                        <button type="submit" class="btn btn-primary">Simpan</button>
                                                     </div>
                                                 </div>
                                             </div>
@@ -668,7 +617,9 @@
 
 @push('scripts')
     <script src="{{ asset('modules/select2/dist/js/select2.full.min.js') }}"></script>
+
     <script>
+        // Fungsi utilitas global
         function formatToRupiah(number) {
             return new Intl.NumberFormat('id-ID', {
                 style: 'currency',
@@ -678,30 +629,26 @@
             }).format(number);
         }
 
+        function parseRupiahToNumber(rupiahText) {
+            if (!rupiahText) return 0;
+            return parseInt(rupiahText.replace(/[^\d]/g, '')) || 0;
+        }
+
         $(document).ready(function() {
             $('#delivery_method_id').on('change', function() {
-                var cost = $(this).find('option:selected').data('delivery-cost');
-                $('#delivery_cost').val(cost || 0).trigger('input'); // Pastikan trigger event input
+                const cost = $(this).find('option:selected').data('delivery-cost');
+                $('#delivery_cost').val(cost || 0).trigger('input');
             });
 
-            // Jika sudah ada nilai saat halaman dimuat, trigger perubahan
             if ($('#delivery_method_id').val()) {
                 $('#delivery_method_id').trigger('change');
             }
         });
     </script>
 
-
     @if (!$isCustomer)
         <script>
             $(document).ready(function() {
-                $('.select2').select2();
-                const formatter = new Intl.NumberFormat('id-ID', {
-                    style: 'currency',
-                    currency: 'IDR',
-                    minimumFractionDigits: 0
-                });
-
                 function updateFinalPrice(id) {
                     const pricePerKg = parseFloat($(`#price_per_kg-${id}`).data('price_per_kg')) || 0;
                     const weight = parseInt($(`#weight_kg-${id}`).val()) || 0;
@@ -710,11 +657,13 @@
                     const totalPrice = pricePerKg * weight;
                     const discountPrice = totalPrice * (discountPercent / 100);
                     const finalPrice = totalPrice - discountPrice;
-                    $(`#total_price-${id}`).text(formatter.format(totalPrice)).data('total_price', totalPrice);
+
+                    $(`#total_price-${id}`).text(formatToRupiah(totalPrice)).data('total_price', totalPrice);
                     $(`#discount_percent-${id}`).text(discountPercent ? `${discountPercent}%` : '0%');
-                    $(`#discount_price-${id}`).text(formatter.format(discountPrice));
-                    $(`#final_service_price-${id}`).text(formatter.format(finalPrice)).data('final_service_price',
+                    $(`#discount_price-${id}`).text(formatToRupiah(discountPrice));
+                    $(`#final_service_price-${id}`).text(formatToRupiah(finalPrice)).data('final_service_price',
                         finalPrice);
+
                     updateGrandTotal();
                 }
 
@@ -723,15 +672,80 @@
                     $('[id^="final_service_price-"]').each(function() {
                         grandTotal += parseFloat($(this).data('final_service_price')) || 0;
                     });
-                    $('#total').text(formatter.format(grandTotal));
+                    $('#total').text(formatToRupiah(grandTotal));
                 }
-                // Event input berat 
+
+                // === FILTER & PILIH OTOMATIS PROMO BERDASARKAN customer_type ===
+                function filterPromosByCustomerType(customerType) {
+                    $('[id^="promo_id-"]').each(function() {
+                        const select = $(this);
+                        const detailId = select.attr('id').split('-')[1];
+
+                        let bestPromo = null;
+                        let maxDiscount = 0;
+
+                        select.find('option').each(function() {
+                            const option = $(this);
+                            const scope = option.data('customer_scope');
+                            const discount = parseInt(option.data('discount_percent')) || 0;
+
+                            if (!scope || scope === customerType) {
+                                option.show();
+                                if (discount > maxDiscount) {
+                                    bestPromo = option;
+                                    maxDiscount = discount;
+                                }
+                            } else {
+                                option.hide();
+                            }
+                        });
+
+                        if (bestPromo && bestPromo.val()) {
+                            select.val(bestPromo.val()).trigger('change');
+                        } else {
+                            // Tidak ada yang cocok, kosongkan
+                            select.val('').trigger('change');
+                        }
+
+                        updateFinalPrice(detailId);
+                    });
+                }
+
+                $('#customer_id').on('change', function() {
+                    const customerType = $('#customer_id option:selected').data('customer_type');
+                    const customerValue = $(this).val();
+
+                    if (!customerValue) {
+                        $('.promo-select')
+                            .addClass('is-invalid')
+                            .prop('disabled', true); // Nonaktifkan select jika value tidak ada
+                    } else {
+                        $('.promo-select')
+                            .removeClass('is-invalid')
+                            .prop('disabled', false); // Aktifkan kembali jika value valid
+                        filterPromosByCustomerType(customerType);
+                    }
+                });
+
+                // Saat halaman pertama kali dimuat
+                const initialType = $('#customer_id option:selected').data('customer_type');
+                const initialCustomerValue = $('#customer_id').val();
+                if (!initialCustomerValue) {
+                    $('.promo-select')
+                        .addClass('is-invalid')
+                        .prop('disabled', true); // Menonaktifkan select
+                } else {
+                    $('.promo-select')
+                        .removeClass('is-invalid')
+                        .prop('disabled', false); // Mengaktifkan kembali select jika valid
+                    filterPromosByCustomerType(initialType);
+                }
+
                 $('input[id^="weight_kg-"]').on('input', function() {
                     const id = $(this).attr('id').split('-')[1];
                     updateFinalPrice(id);
                 });
 
-                // Tombol plus 
                 $('.btn-plus').on('click', function() {
                     const id = $(this).data('id');
                     const input = $(`#weight_kg-${id}`);
@@ -739,21 +753,19 @@
                     input.val(value + 1).trigger('input');
                 });
 
-                // Tombol minus 
                 $('.btn-minus').on('click', function() {
                     const id = $(this).data('id');
                     const input = $(`#weight_kg-${id}`);
-                    let value = parseInt(input.val()) || 0;
+                    const value = parseInt(input.val()) || 0;
                     input.val(value > 0 ? value - 1 : 0).trigger('input');
                 });
 
-                // Delegasi event promo select2 
                 $(document).on('change', 'select[id^="promo_id-"]', function() {
                     const id = $(this).attr('id').split('-')[1];
                     updateFinalPrice(id);
                 });
 
-                // Inisialisasi awal 
+                // Hitung awal semua
                 $('input[id^="weight_kg-"]').each(function() {
                     const id = $(this).attr('id').split('-')[1];
                     updateFinalPrice(id);
@@ -813,35 +825,25 @@
 
     <script>
         $(document).ready(function() {
-            function parseRupiahToNumber(rupiahText) {
-                if (!rupiahText) return 0;
-                return parseInt(rupiahText.replace(/[^\d]/g, '')) || 0;
-            }
-
             function updateTotalPayment() {
-                const totalText = $("#total").text(); // Text yang sudah diformat (Rp ...)
-                const deliveryInput = $("#delivery_cost").val(); // Nilai input biaya antar
+                const totalText = $("#total").text();
+                const deliveryInput = $("#delivery_cost").val();
 
                 const total = parseRupiahToNumber(totalText);
                 const deliveryCost = parseRupiahToNumber(deliveryInput);
-
                 const finalTotal = total + deliveryCost;
 
-                // Update tampilan
                 $("#total_copy").text(formatToRupiah(total));
                 $("#delivery_cost_copy").text(formatToRupiah(deliveryCost));
                 $("#final_amount_paid").text(formatToRupiah(finalTotal));
             }
 
-            // Inisialisasi awal
             updateTotalPayment();
 
-            // Event ketika biaya antar diubah (baik manual atau lewat script)
             $("#delivery_cost").on("input", function() {
                 updateTotalPayment();
             });
 
-            // Mengamati perubahan isi elemen #total 
             const totalNode = document.getElementById('total');
             if (totalNode) {
                 const observer = new MutationObserver(function(mutationsList) {

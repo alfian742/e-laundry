@@ -361,7 +361,7 @@
                 });
             });
         </script>
-    @elseif (!$isEmployee && ($isOwner || $isAdmin))
+    @elseif ($isOwner || $isAdmin)
         <script>
             $(document).ready(function() {
                 // Gunakan delegasi untuk tombol hapus

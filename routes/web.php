@@ -110,16 +110,16 @@ Route::resource('/account', AccountController::class)->middleware('role:owner,ad
 // ----------------
 
 // ---------------- (Service)
-// Manage Promo
-Route::get('/service/{service}/manage-promo', [ServiceController::class, 'managePromoService'])->name('service.promo.manage')->middleware('role:owner,admin');
-Route::post('/service/{service}/manage-promo', [ServiceController::class, 'storePromoService'])->name('service.promo.store')->middleware('role:owner,admin');
-Route::delete('/service/{service}/destroy-promo/{promo}', [ServiceController::class, 'destroyPromoService'])->name('service.promo.destroy')->middleware('role:owner,admin');
-
 // Resource
 Route::resource('/service', ServiceController::class)->middleware('auth');
 // ----------------
 
 // ---------------- (Promo)
+// Manage Promo Service
+Route::get('/promo/{promo}/manage-service', [PromoController::class, 'managePromoService'])->name('promo.service.manage')->middleware('role:owner,admin');
+Route::post('/promo/{promo}/manage-service', [PromoController::class, 'storePromoService'])->name('promo.service.store')->middleware('role:owner,admin');
+Route::delete('/promo/{promo}/manage-service', [PromoController::class, 'destroyPromoService'])->name('promo.service.destroy')->middleware('role:owner,admin');
+
 // Resource
 Route::resource('/promo', PromoController::class)->middleware('role:owner,admin,employee');
 // ----------------
@@ -162,14 +162,14 @@ Route::prefix('/order')->middleware('auth')->group(function () {
         ->name('order.checkout')
         ->middleware('role:customer');
 
+    // Checkout order (hanya admin/owner/employee)
+    Route::put('/checkout-staff/{order}', [OrderController::class, 'checkoutStaffOrder'])
+        ->name('order.checkout.staff')
+        ->middleware('role:owner,admin,employee');
+
     // Menambahkan layanan ke order yang sudah ada (hanya untuk admin/owner/employee)
     Route::post('/{order}/store', [OrderController::class, 'storeServiceToOrder'])
         ->name('order.service.store')
-        ->middleware('role:owner,admin,employee');
-
-    // Mengupdate layanan dalam order yang sudah ada (hanya untuk admin/owner/employee)
-    Route::put('/{order}/update', [OrderController::class, 'updateServicesFromOrder'])
-        ->name('order.service.update')
         ->middleware('role:owner,admin,employee');
 
     // Menghapus layanan dari order yang sudah ada (hanya untuk admin/owner/employee)
@@ -214,11 +214,6 @@ Route::prefix('/order')->middleware('auth')->group(function () {
     Route::get('/{id}/print-receipt', [OrderController::class, 'printOrderReceipt'])
         ->name('order.print.receipt')
         ->middleware('role:owner,admin,employee');
-
-    // Update status payment
-    Route::put('/{id}/update-payment-status', [OrderController::class, 'updatePaymentStatus'])
-        ->name('order.update.status.payment')
-        ->middleware('role:owner,admin');
 
     // Update status order
     Route::put('/{id}/update-order-status', [OrderController::class, 'updateOrderStatus'])

@@ -288,7 +288,11 @@
                         $remainingPayment = $finalAmountPaid - $totalAmountPaid;
                     @endphp
 
-                    @if ($remainingPayment < 0)
+                    @if (abs($remainingPayment) <= 1)
+                        <th>Sisa Pembayaran</th>
+                        <td>=</td>
+                        <td>{{ formatRupiah(0) }}</td>
+                    @elseif ($remainingPayment < 0)
                         <th>Uang Kembali</th>
                         <td>=</td>
                         <td>{{ formatRupiah(abs($remainingPayment)) }}</td>

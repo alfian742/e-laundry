@@ -72,6 +72,27 @@
                                                             data-toggle="tooltip" title="Detail">
                                                             <i class="fas fa-info-circle"></i>
                                                         </a>
+
+                                                        @if ($isOwner || $isAdmin)
+                                                            <div class="d-flex align-items-center" style="gap: .5rem">
+                                                                <a href="{{ url("/service/{$service->id}/edit") }}"
+                                                                    class="btn btn-primary" data-toggle="tooltip"
+                                                                    title="Ubah">
+                                                                    <i class="fas fa-pencil-alt"></i>
+                                                                </a>
+
+                                                                <form action="{{ route('service.destroy', $service->id) }}"
+                                                                    method="POST" id="delete-form-{{ $service->id }}"
+                                                                    class="d-inline">
+                                                                    @csrf
+                                                                    @method('delete')
+                                                                    <button type="submit" class="btn btn-danger btn-delete"
+                                                                        data-toggle="tooltip" title="Hapus">
+                                                                        <i class="fas fa-trash"></i>
+                                                                    </button>
+                                                                </form>
+                                                            </div>
+                                                        @endif
                                                     </div>
                                                 </td>
                                             </tr>
@@ -90,4 +111,36 @@
 @push('scripts')
     <script src="{{ asset('modules/datatables/dataTables.min.js') }}"></script>
     <script src="{{ asset('js/page/modules-datatables.js') }}"></script>
+
+    @if ($isOwner || $isAdmin)
+        <script>
+            $(document).ready(function() {
+                // Gunakan delegasi untuk tombol hapus
+                $(document).on('click', '.btn-delete', function(e) {
+                    e.preventDefault();
+
+                    const formId = $(this).closest('form').attr('id');
+
+                    swal({
+                        title: 'Hapus Data',
+                        text: 'Apakah Anda yakin ingin menghapus data ini?',
+                        icon: 'warning',
+                        buttons: {
+                            cancel: 'Batal',
+                            confirm: {
+                                text: 'Ya, Hapus!',
+                                value: true,
+                                className: 'btn-danger',
+                            }
+                        },
+                        dangerMode: true,
+                    }).then((willDelete) => {
+                        if (willDelete) {
+                            $('#' + formId).submit();
+                        }
+                    });
+                });
+            });
+        </script>
+    @endif
 @endpush
