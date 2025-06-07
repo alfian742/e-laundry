@@ -79,8 +79,8 @@
                         $finalServicePrice += $detail->final_service_price;
                     }
 
-                    foreach ($orderTransactions as $transaction) {
-                        $totalAmountPaid += $transaction->amount_paid;
+                    foreach ($orderTransactions as $orderTransaction) {
+                        $totalAmountPaid += $orderTransaction->amount_paid;
                     }
 
                     $finalAmountPaid = $finalServicePrice + $order->delivery_cost;

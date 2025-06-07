@@ -312,6 +312,11 @@ class TransactionController extends Controller
 
             $defaultTimestamp = now();
 
+            // Jika status saat ini adalah pending, rejected, atau failed, anggap pembayaran saat ini adalah 0
+            if (in_array($data['status'], ['pending', 'rejected', 'failed'])) {
+                $data['amount_paid'] = 0;
+            }
+
             // Buat transaksi baru
             $transaction = Transaction::create([
                 'invoice_id' => 'INV-' . now()->format('YmdHis') . '-' . strtoupper(Str::random(5)),
@@ -353,25 +358,41 @@ class TransactionController extends Controller
             }
 
             if ($staff) {
-                $newAmount = (int) formatRupiahPlain($data['amount_paid']);
-                // Pastikan total_service_price dan delivery_cost sudah angka sebelum dijumlah
-                $servicePrice = (int) formatRupiahPlain($order->total_service_price);
-                $deliveryCost = (int) formatRupiahPlain($order->delivery_cost);
+                $newAmount = (float) $data['amount_paid'];
+                $servicePrice = (float) $order->total_service_price;
+                $deliveryCost = (float) $order->delivery_cost;
                 $finalPrice = $servicePrice + $deliveryCost;
 
+                // Cek apakah ada transaksi sukses sebelumnya
                 $hasPreviousTransactions = Transaction::where('order_id', $order->id)
                     ->where('status', 'success')
                     ->exists();
 
-                $totalPaidBefore = (int) Transaction::where('order_id', $order->id)
-                    ->where('status', 'success')
-                    ->sum('amount_paid');
+                // Hitung total pembayaran sukses sebelumnya
+                $totalPaidBeforeQuery = Transaction::where('order_id', $order->id)
+                    ->where('status', 'success');
 
-                $totalPaid = $totalPaidBefore;
-                if ($data['status'] === 'success') {
-                    $totalPaid += $newAmount;
+                // Jika sedang mengedit transaksi, dan transaksi lama adalah sukses, kurangi dari total sebelumnya
+                if (!empty($transactionId)) {
+                    $oldTransaction = Transaction::find($transactionId);
+                    if ($oldTransaction && $oldTransaction->status === 'success') {
+                        $totalPaidBeforeQuery->where('id', '!=', $oldTransaction->id);
+                    }
                 }
 
+                $totalPaidBefore = (float) $totalPaidBeforeQuery->sum('amount_paid');
+
+                // Total pembayaran awal
+                $totalPaid = $totalPaidBefore;
+
+                // Jika status transaksi sekarang adalah sukses, tambahkan nilai pembayaran baru
+                if ($data['status'] === 'success') {
+                    $totalPaid += $newAmount;
+                } else if (in_array($data['status'], ['pending', 'rejected', 'failed'])) {
+                    $newAmount = 0;
+                }
+
+                // Logika penentuan status pembayaran
                 if (!$hasPreviousTransactions && $data['status'] !== 'success') {
                     $order->update(['payment_status' => 'unpaid']);
                 } else {
@@ -560,6 +581,11 @@ class TransactionController extends Controller
             $oldType = $oldPaymentMethod->payment_type ?? null;
             $newType = $newPaymentMethod->payment_type ?? null;
 
+            // Jika status saat ini adalah pending, rejected, atau failed, anggap pembayaran saat ini adalah 0
+            if (in_array($data['status'], ['pending', 'rejected', 'failed'])) {
+                $data['amount_paid'] = 0;
+            }
+
             $transaction->update([
                 'order_id' => $order->id,
                 'payment_method_id' => $data['payment_method_id'],
@@ -607,33 +633,41 @@ class TransactionController extends Controller
             }
 
             if ($staff) {
-                $newAmount = (int) formatRupiahPlain($data['amount_paid']);
-                // Pastikan total_service_price dan delivery_cost sudah angka sebelum dijumlah
-                $servicePrice = (int) formatRupiahPlain($order->total_service_price);
-                $deliveryCost = (int) formatRupiahPlain($order->delivery_cost);
+                $newAmount = (float) $data['amount_paid'];
+                $servicePrice = (float) $order->total_service_price;
+                $deliveryCost = (float) $order->delivery_cost;
                 $finalPrice = $servicePrice + $deliveryCost;
 
+                // Cek apakah ada transaksi sukses sebelumnya
                 $hasPreviousTransactions = Transaction::where('order_id', $order->id)
                     ->where('status', 'success')
                     ->exists();
 
-                $totalPaidBefore = (int) Transaction::where('order_id', $order->id)
-                    ->where('status', 'success')
-                    ->sum('amount_paid');
+                // Hitung total pembayaran sukses sebelumnya
+                $totalPaidBeforeQuery = Transaction::where('order_id', $order->id)
+                    ->where('status', 'success');
 
-                // Jika sedang mengedit transaksi lama, kurangi nilai transaksi lama
-                if (isset($transactionId)) {
+                // Jika sedang mengedit transaksi, dan transaksi lama adalah sukses, kurangi dari total sebelumnya
+                if (!empty($transactionId)) {
                     $oldTransaction = Transaction::find($transactionId);
                     if ($oldTransaction && $oldTransaction->status === 'success') {
-                        $totalPaidBefore -= (int) formatRupiahPlain($oldTransaction->amount_paid);
+                        $totalPaidBeforeQuery->where('id', '!=', $oldTransaction->id);
                     }
                 }
 
+                $totalPaidBefore = (float) $totalPaidBeforeQuery->sum('amount_paid');
+
+                // Total pembayaran awal
                 $totalPaid = $totalPaidBefore;
+
+                // Jika status transaksi sekarang adalah sukses, tambahkan nilai pembayaran baru
                 if ($data['status'] === 'success') {
                     $totalPaid += $newAmount;
+                } else if (in_array($data['status'], ['pending', 'rejected', 'failed'])) {
+                    $newAmount = 0;
                 }
 
+                // Logika penentuan status pembayaran
                 if (!$hasPreviousTransactions && $data['status'] !== 'success') {
                     $order->update(['payment_status' => 'unpaid']);
                 } else {
