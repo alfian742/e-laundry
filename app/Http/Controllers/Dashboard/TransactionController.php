@@ -17,6 +17,35 @@ use Illuminate\Support\Str;
 
 class TransactionController extends Controller
 {
+    // Hapus semua cache untuk order
+    protected function clearAllOrderCache()
+    {
+        $orderStatuses = ['all', 'new', 'pending', 'in_progress', 'pickup', 'delivery', 'done', 'canceled'];
+        $paymentStatuses = ['all', 'unpaid', 'partial', 'paid'];
+
+        foreach ($orderStatuses as $orderStatus) {
+            foreach ($paymentStatuses as $paymentStatus) {
+                $filter = "{$orderStatus}_{$paymentStatus}";
+                Cache::forget($this->getOrderCacheKey('order', $filter));
+            }
+        }
+    }
+
+    // Hapus semua cache untuk jadwal
+    protected function clearAllScheduleCache()
+    {
+        $filters = ['all', 'today', 'this_week'];
+        foreach ($filters as $filter) {
+            Cache::forget($this->getOrderCacheKey('schedule', $filter));
+        }
+    }
+
+    // Cache key
+    protected function getOrderCacheKey($type = 'order', $filter = 'all')
+    {
+        return "order_cache_{$type}_{$filter}";
+    }
+    
     // Fungsi untuk menghapus cache transaksi berdasarkan kombinasi tahun & bulan
     protected function clearTransactionCache()
     {
@@ -408,6 +437,8 @@ class TransactionController extends Controller
 
             DB::commit();
 
+            $this->clearAllOrderCache();
+            $this->clearAllScheduleCache();
             $this->clearTransactionCache();
 
             if ($staff) {
@@ -683,6 +714,8 @@ class TransactionController extends Controller
 
             DB::commit();
 
+            $this->clearAllOrderCache();
+            $this->clearAllScheduleCache();
             $this->clearTransactionCache();
 
             if ($staff) {
@@ -761,6 +794,8 @@ class TransactionController extends Controller
 
             DB::commit();
 
+            $this->clearAllOrderCache();
+            $this->clearAllScheduleCache();
             $this->clearTransactionCache();
 
             return redirect(url("/order/{$order->id}/transaction"))->with('success', 'Pembayaran berhasil dihapus.');
