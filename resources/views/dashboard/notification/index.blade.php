@@ -42,13 +42,13 @@
                                         @if ($reviewCount > 0)
                                             <h6>
                                                 Ulasan Pelanggan
-                                                <span class="badge badge-secondary rounded">{{ $orderCount }}</span>
+                                                <span class="badge badge-secondary rounded">{{ $reviewCount }}</span>
                                             </h6>
                                         @endif
                                         @if ($transactionCount > 0)
                                             <h6>
                                                 Pembayaran (Menunggu Konfirmasi)
-                                                <span class="badge badge-warning rounded">{{ $orderCount }}</span>
+                                                <span class="badge badge-warning rounded">{{ $transactionCount }}</span>
                                             </h6>
                                         @endif
                                     @endif
